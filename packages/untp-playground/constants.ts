@@ -1,3 +1,12 @@
+export enum ArtefactKind {
+  CREDENTIAL = 'credential',
+  SCHEME = 'scheme',
+}
+
+export enum SchemeType {
+  CONFORMITY_SCHEME = 'ConformityScheme',
+}
+
 export enum CredentialType {
   DIGITAL_PRODUCT_PASSPORT = 'DigitalProductPassport',
   DIGITAL_CONFORMITY_CREDENTIAL = 'DigitalConformityCredential',
@@ -41,6 +50,32 @@ export const VCDM_SCHEMA_URLS = {
     'https://w3c.github.io/vc-data-model/schema/verifiable-credential/verifiable-credential-schema.json',
 };
 
+// Domains used in UNTP credential @context URIs. v0.7.0 introduced the
+// `vocabulary.uncefact.org` domain; earlier versions use `test.uncefact.org`.
+export const UNTP_CONTEXT_DOMAINS = ['vocabulary.uncefact.org', 'test.uncefact.org'] as const;
+
+// Short names (URL segment) for each UNTP core credential type.
+export const UNTP_SHORT_CREDENTIAL_TYPES: Record<string, string> = {
+  DigitalProductPassport: 'dpp',
+  DigitalConformityCredential: 'dcc',
+  DigitalTraceabilityEvent: 'dte',
+  DigitalFacilityRecord: 'dfr',
+  DigitalIdentityAnchor: 'dia',
+  ConformityScheme: 'cvc',
+};
+
+// Schema filename (without `.json`) for each UNTP core credential type. Applies
+// to v0.7.0 and above — most types match their credential type name verbatim,
+// but DCC was renamed from `DigitalConformityCredential` to `ConformityCredential`.
+export const UNTP_CORE_SCHEMA_FILENAMES: Record<string, string> = {
+  DigitalProductPassport: 'DigitalProductPassport',
+  DigitalConformityCredential: 'ConformityCredential',
+  DigitalTraceabilityEvent: 'DigitalTraceabilityEvent',
+  DigitalFacilityRecord: 'DigitalFacilityRecord',
+  DigitalIdentityAnchor: 'DigitalIdentityAnchor',
+  ConformityScheme: 'ConformityScheme',
+};
+
 export enum TestCaseStatus {
   PENDING = 'pending',
   IN_PROGRESS = 'in-progress',
@@ -57,6 +92,8 @@ export enum TestCaseStepId {
   UNTP_SCHEMA_VALIDATION = 'untp-schema-validation',
   EXTENSION_SCHEMA_VALIDATION = 'extension-schema-validation',
   CONTEXT_VALIDATION = 'context',
+  SCHEME_VERSION_DETECTION = 'scheme-version-detection',
+  SCHEME_SCHEMA_VALIDATION = 'scheme-schema-validation',
 }
 
 const commonContextUrls = [
@@ -71,3 +108,9 @@ export const allowedContextValue = {
 export const allowedExtensionValue = {
   '@context': [...commonContextUrls, 'https://{extension.domain}/{type}/{version}/'],
 };
+
+// Next.js inlines `NEXT_PUBLIC_*` at build time, so this constant captures
+// the deploy-time base path (e.g. `/test-untp-playground`) once and lets
+// every client-side `/api/*` caller prefix it consistently. The fallback
+// empty string keeps local dev (where the var is unset) working.
+export const API_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';

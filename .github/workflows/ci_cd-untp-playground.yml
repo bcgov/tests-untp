@@ -6,6 +6,8 @@ on:
     branches:
       - next
       - 'cd/**'
+    tags:
+      - 'untp-playground-v*'
     paths:
       - 'packages/untp-playground/**'
       - '.github/workflows/ci_cd-untp-playground.yml'
@@ -39,18 +41,21 @@ jobs:
           AWS_ROLE_TO_ASSUME: ${{ secrets.UNCEFACT_AWS_ROLE_TO_ASSUME}}
 
 
-      - name: Setup Node LTS ✨
-        uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: lts/*
-          cache: yarn
+          node-version-file: '.nvmrc'
+          cache: pnpm
   
       - name: Installing dependencies 📦️
-        run: yarn install
+        run: pnpm install --ignore-workspace
         working-directory: ./packages/untp-playground/infra
 
       - name: Deploy Stack
-        uses: pulumi/actions@v5
+        uses: pulumi/actions@v6
         with:
           command: up
           stack-name: ${{ env.STACK_NAME}}
@@ -60,10 +65,25 @@ jobs:
           NEXT_PUBLIC_ASSET_PREFIX: /test-untp-playground
           NEXT_PUBLIC_IMAGE_PATH: /test-untp-playground/_next/image
           NEXT_PUBLIC_REPORT_NAME:
+          NEXT_PUBLIC_PLAYGROUND_VERSION: ${{ github.sha }}
+          VERIFICATION_SERVICE_URL: ${{vars.PLAYGROUND_VERIFICATION_SERVICE_URL}}
+          VERIFICATION_SERVICE_TOKEN: ${{secrets.PLAYGROUND_VERIFICATION_SERVICE_TOKEN}}
           STACK_NAME: test
 
   deploy_prod:
-    if: github.repository_owner == 'uncefact' && github.ref_type == 'tag' && github.event_name == 'workflow_dispatch'
+    # Stable releases only. A tag push for `untp-playground-v<X.Y.Z>` deploys
+    # to prod; pre-release tags carrying a `-rc` / `-alpha` / `-beta` / `-pre`
+    # suffix on the version do not. workflow_dispatch against a stable tag
+    # still works for a manual re-deploy.
+    if: >-
+      github.repository_owner == 'uncefact' &&
+      github.ref_type == 'tag' &&
+      startsWith(github.ref, 'refs/tags/untp-playground-v') &&
+      !contains(github.ref_name, '-rc') &&
+      !contains(github.ref_name, '-alpha') &&
+      !contains(github.ref_name, '-beta') &&
+      !contains(github.ref_name, '-pre') &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     concurrency:
       group: untp-plaground-${{github.ref}}
 
@@ -89,18 +109,21 @@ jobs:
           AWS_ROLE_TO_ASSUME: ${{ secrets.UNCEFACT_AWS_ROLE_TO_ASSUME}}
 
 
-      - name: Setup Node LTS ✨
-        uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: lts/*
-          cache: yarn
+          node-version-file: '.nvmrc'
+          cache: pnpm
   
       - name: Installing dependencies 📦️
-        run: yarn install
+        run: pnpm install --ignore-workspace
         working-directory: ./packages/untp-playground/infra
 
       - name: Deploy Stack
-        uses: pulumi/actions@v5
+        uses: pulumi/actions@v6
         with:
           command: up
           stack-name: ${{ env.STACK_NAME}}
@@ -110,4 +133,7 @@ jobs:
           NEXT_PUBLIC_ASSET_PREFIX: /untp-playground
           NEXT_PUBLIC_IMAGE_PATH: /untp-playground/_next/image
           NEXT_PUBLIC_REPORT_NAME:
+          NEXT_PUBLIC_PLAYGROUND_VERSION: ${{ github.ref_name }}
+          VERIFICATION_SERVICE_URL: ${{vars.PLAYGROUND_VERIFICATION_SERVICE_URL}}
+          VERIFICATION_SERVICE_TOKEN: ${{secrets.PLAYGROUND_VERIFICATION_SERVICE_TOKEN}}
           STACK_NAME: prod

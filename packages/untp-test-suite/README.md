@@ -1,283 +1,416 @@
-# untp-test-suite
+# UNTP Test Suite
 
-The UNTP Test Suite is a tool that allows you to test your credentials against the UNTP schema data models.
+A reusable testing library for United Nations Transparency Protocol (UNTP) credentials that works in both Node.js CLI and browser environments, using [Mocha](https://mochajs.org/).
 
-# Features
+Importantly, the same test runner is used in both environments for running the tests.
 
-- Test the product passport, conformity credential, and traceability events against the UNTP schema data models.
-- Run the test suite using the command line interface (CLI)
-- Expose the test suite as a service (Library)
+## Example CLI Usage
 
-# Structure
+![CLI Usage](doc/images/console-tag-schema.png)
 
-`core`: Implements UNTP Test Suite's core functionality, low-level services, and utilities.
+## Example Browser Usage
 
-- `services`: Contains the services that are used to interact with the application.
-- `types`: Contains the types that are used to define the data structure of the application.
+![Browser Usage](doc/images/browser-tag-schema.png)
 
-`interfaces`: Contains the interfaces that are used to define the output of the application.\
+## Example tier 2 test
 
-- `api`: Define the output of the application's API.
-- `cli`: Define the output of the application's cli.
-- `service`: Define the output of the application's service.
+Since the test runner is using mocha and chai, we benefit from simple test language.
+Below is an example showing the main tier 2 test which gets the schema for a UNTP
+credential type and expects the credential to match that schema:
 
-`schemas`: Contains the schema files for product passports, conformity credentials, and traceability events.
+```typescript
+it(`should validate against ${untpType} UNTP schema tag:schema`, async () => {
+  // Get the appropriate UNTP schema URL for this credential type
+  const schemaUrl = await untpTestSuite.getSchemaUrlForCredential(parsedCredential, untpType);
 
-- `productPassport`: Contains the schema files for the product passport.
-- `conformityCredential`: Contains the schema files for the conformity credential.
-- `aggregationEvent`: Contains the schema files for the aggregate event (An aggregation event describes that consolidation or de-consolidation of products such as stacking bales of cotton on a pallet for transportation).
-- `objectEvent`: Contains the schema files for the object event (An object event describes an action on specific product(s) such as an inspection).
-- `transactionEvent`: Contains the schema files for the transaction event (A transaction event describes the exchange of product(s) between two actors such as sale of goods between seller and buyer).
-- `transformationEvent`: Contains the schema files for the transformation event (A transformation event describes a manufacturing process that consumes input product(s) to create new output product(s)).
-- `traceabilityEvents`: Contains the schema files for the traceability events. This schema defines a Digital Traceability Event as a Verifiable Credential (VC), enabling the tracking and documentation of events such as object, transactions, transformations, aggregations, and associations within a supply chain. It ensures standardized data exchange by encapsulating event details (e.g., time, location, and product identifiers) with context-driven semantics to support traceability and accountability.
-- `digitalFacilityRecord`: Contains the schema files for the digital facility record. It holds performance and compliance information about a facility, such as sustainability metrics, standards, and regulatory conformity. It ensures structured data interoperability by referencing identifiers, classifications, and location details while supporting JSON-LD contexts for semantic meaning.
+  // Assert that we can determine a UNTP schema URL for this credential
+  expect(schemaUrl, 'Should be able to determine UNTP schema URL for credential').to.be.a('string');
 
-`templates`: Contains the templates for the log messages include timestamps, log levels, and descriptive messages regarding the test execution and outcomes.
+  // Validate the credential against its specific UNTP schema
+  await expect(parsedCredential).to.match.schema(schemaUrl);
+});
+```
 
-# Reference link schema
+## Features
 
-[Product Passport](https://jargon.sh/user/unece/DigitalProductPassport/v/0.0.1/artefacts/jsonSchemas/render.json?class=ProductPassport)\
-[Conformity Credential](https://jargon.sh/user/unece/ConformityCredential/v/working/artefacts/jsonSchemas/render.json?class=ConformityAttestation)
+- **Both CLI and Browser Compatibility** - Same tests run in CLI and browser
+- **Real-time Streaming Results** - Live test output with custom reporter
+- **Tag-based Filtering** - Specific sets of tests can be selected using tags
+- **Extension Schema Mapping** - Support for custom credential types with configurable mapping of extension type to schemas (both in CLI and browser)
+- **General test extensibility** - TBD
 
-## Traceability event
+## Testing Tiers
 
-[Aggregation Event](https://jargon.sh/user/unece/traceabilityEvents/v/working/artefacts/jsonSchemas/render.json?class=AggregationEvent)\
-[Object Event](https://jargon.sh/user/unece/traceabilityEvents/v/working/artefacts/jsonSchemas/render.json?class=ObjectEvent)\
-[Transaction Event](https://jargon.sh/user/unece/traceabilityEvents/v/working/artefacts/jsonSchemas/render.json?class=TransactionEvent)\
-[Transformation Event](https://jargon.sh/user/unece/traceabilityEvents/v/working/artefacts/jsonSchemas/render.json?class=TransformationEvent)
+The package enables running the two tiers of UNTP validation that are currently available:
 
-# Installation
+- **Tier 1**: W3C Verifiable Credential validation (JSON, JSON-LD, schema conformance)
+- **Tier 2**: UNTP-specific credential type validation and required fields
+- **Tier 3**: Graph inference, trust-chain verification, and claim conformance
 
-## Prerequisites
+## Installation
 
-- Node.js >= v20.12.2
-- Yarn >= 1.22.17
+This package is part of the `tests-untp` monorepo and is not currently published to npm. To use it, you need to install dependencies from the repository root and build the package locally.
 
-## Install the dependencies and build the project
+### Prerequisites
+
+Follow the [Prerequisites section](../../README.md#prerequisites) in the root README to set up Node.js and Yarn.
+
+### Setup Steps
+
+1. **Install dependencies from the repository root** (this ensures packages are hoisted correctly):
+
+   ```bash
+   # From the repository root directory
+   yarn install
+   ```
+
+2. **Build the package**:
+   ```bash
+   cd packages/untp-test-suite
+   yarn build
+   ```
+
+After building, you can use the CLI commands with `npx` to pick up the local build.
+
+## CLI Usage
+
+### Basic Usage
+
+Test credential files directly or by passing a directory:
+
+> **Note**: In the examples below, `credential.json`, `credential1.json`, etc. are placeholder filenames that don't exist - replace them with paths to your actual credential files. Examples using `./example-credentials/` reference actual example files included in this package.
+
+> **Note**: The credentials in `example-credentials` are designed to demonstrate both passing and failing test scenarios. Tier 1 and Tier 2 tests will pass for all credentials. However, Tier 3 tests will report an expected failure: the Digital Product Passport claims 4 conformity criteria, but the Digital Conformity Credential only attests to 3 of them. This intentionally demonstrates the test suite's ability to detect when product claims are not fully verified by a conformity credential.
 
 ```bash
-# Install the dependencies
-$ yarn install
+# Test single credential file (replace credential.json with your credential file)
+npx untp-test credential.json
+
+# Test multiple files (replace with your credential files)
+npx untp-test credential1.json credential2.json credential3.json
+
+# Test all credential files from directory (tier 3 tests will fail due to the absence of the --trust-did)
+npx untp-test --directory ./example-credentials/UNTP/
+
+# Combine individual files with directory scanning (replace credential.json with your credential file)
+npx untp-test credential.json --directory ./example-credentials/UNTP/
+
+# With tag filtering
+npx untp-test --directory ./example-credentials/UNTP/ --tag tier1
+
+# Trust root issuer (tier 3 test will still fail - demonstrates detecting unattested claims)
+npx untp-test --directory ./example-credentials/UNTP/ --trust-did=did:web:abr.business.gov.au
 ```
 
-**Note: Please make sure to build the project before running the test suite.**
+**Supported file types**: `.json` and `.jsonld` files are automatically detected and included when scanning a directory.
+
+### Extension Schema Mapping
+
+Test credentials with custom extension types by providing schema mapping files:
 
 ```bash
-# Build the project
-yarn build
+# Test extension credential with custom schema mapping (expected to fail)
+npx untp-test --extension-schema-map example-credentials/extensions/digital-livestock-mapping.json \
+example-credentials/extensions/DigitalLivestockPassport/digital-livestock-passport-simple-working-context.json
+
+# Multiple extension mappings (replace credential.json with your credential file)
+npx untp-test --extension-schema-map ./ext1.json --extension-schema-map ./ext2.json credential.json
+
+# Combine with directory scanning (expected to fail)
+npx untp-test --extension-schema-map example-credentials/extensions/digital-livestock-mapping.json \
+--directory ./example-credentials/extensions/DigitalLivestockPassport
 ```
 
-# Usage
-
-## UNTP Test Suite CLI Tool
-
-This CLI tool is designed to facilitate the management and execution of the UNTP test suite.
-
-### Installation
-
-Navigate to the `untp-test-suite` package folder. Build the `untp-test-suite` package:
-
-```bash
-yarn run build
-```
-
-Install the UNTP Test Suite CLI Tool:
-
-```bash
-npm install -g .
-```
-
-Alternatively, you can run the UNTP test suite by typing the following command into the terminal console:
-
-```bash
-yarn run untp
-```
-
-### **Create Credentials File**
-
-This command generates a `credentials.json` file in the current working directory.
-
-```bash
-untp config
-```
-
-or
-
-```bash
-yarn run untp config
-```
-
-The `credentials.json` file contains configurations for running the test suite, including types and versions of events and their data paths.
-
----
-
-### Running UNTP Test Suite
-
-This command executes the UNTP test suite using the default `credentials.json` file in the current working directory.
-
-```bash
-untp test
-```
-
-or
-
-```bash
-yarn run untp test
-```
-
-To use a specific configuration file, use the `-c` or `--config` flag followed by the path to the file.
-
-```bash
-untp test --config path/to/credentials.json
-```
-
-or
-
-```bash
-yarn run untp test --config path/to/credentials.json
-```
-
-## UNTP Test Suite Library
-
-This repository contains two UNTP Test Suite Library functions for running the UNTP test suite. The `testCredentialsHandler` function is designed to handle testing of multiple credentials against their respective schemas and generates a final report. Depending on the data passed to the function, it will execute corresponding actions. Additionally, the `testCredentialHandler` function is specialized for testing a credential based on a credential schema configuration.
-
-### Installation
-
-Navigate to the `untp-test-suite` package folder. Build the `untp-test-suite` package:
-
-```bash
-yarn run build
-```
-
-To use these functions in your project locally, follow these steps:
-
-1. Navigate to the `build` folder inside the `untp-test-suite` package folder.
-2. Run `npm link` command.
-
-Now, go to your project folder where you want to integrate the UNTP Test Suite. Initialize a `package.json` file using the `npm init` command. After the `package.json` file is generated, add the following line to it, as the library is an ES module:
-
-```json
-"type": "module"
-```
-
-Then, install the UNTP Test Suite to the `node_modules` directory of your project by using the `npm link untp-test-suite` command. Now you can use the UNTP Test Suite for your project.
-
-### UNTP Test Suite Library with the `credentials.json` file
-
-If you want to run UNTP tests with a configuration file, then create a `credentials.json` file by using the UNTP Test Suite CLI tool. Type the following command in your terminal:
-
-```bash
-untp config
-```
-
-The `credentials.json` file will be generated in the current directory.
-
-Open the `credentials.json` file and update it with the following structure, including the `type` and `version` fields, along with the `dataPath` field pointing to the file you want to use for running the UNTP test suite:
+Extension mapping files define how to resolve schema URLs for custom credential types:
 
 ```json
 {
-  "type": "aggregationEvent", // Example event schema type
-  "version": "v0.0.1", // Example event schema version
-  "dataPath": "/path/to/your/data/file", // Example test data path
-  "url": "" // If you want to use a remote schema, provide the URL here, the type and version fields will be ignored
+  "version": "0.1.0",
+  "mappings": [
+    {
+      "credentialType": "DigitalLivestockPassport",
+      "schemaUrlPattern": "https://jargon.sh/user/aatp/DigitalLivestockPassport/v/working/artefacts/jsonSchemas/DigitalLivestockPassport.json?class=DigitalLivestockPassport"
+    }
+  ]
 }
 ```
 
-Now, use the `testCredentialsHandler` function in your project and pass the path to the `credentials.json` file as an argument to the function:
+See [default-mappings.json](src/untp-test/schema-mapper/default-mappings.json) for an example showing the schema mapping used for UNTP credentials, or [digital-livestock-mapping.json](example-credentials/extensions/digital-livestock-mapping.json) for an example showing the mapping used for an example extension.
 
-```js
-const credentialsFilePath = '/path/to/credentials.json';
+### Tag Filtering
 
-testCredentialsHandler(credentialsFilePath)
-  .then((results) => {
-    // Handle the test results here
-  })
-  .catch((error) => {
-    // Handle any errors here
-  });
-```
-
-### UNTP Test Suite Library with direct credential objects
-
-If you want to run UNTP tests with direct credential objects, then you can using the content inside the `credentials.json` file that you generated before and pass it to `testCredentialsHandler` function as an argument:
-
-```js
-testCredentialsHandler({
-  credentials: [
-    {
-      type: 'aggregationEvent',
-      version: 'v0.0.1',
-      dataPath: '/data/aggregationEvent.json',
-      url: '',
-    },
-    // Add more credentials as needed...
-  ],
-})
-  .then((results) => {
-    // Handle the test results here
-  })
-  .catch((error) => {
-    // Handle any errors here
-  });
-```
-
-### UNTP Test Suite Library with a credential object
-
-You can run the UNTP test with a credentials object, where the first argument is the credential schema and the second is a test data object.
-
-With local schema:
-
-```js
-testCredentialHandler(
-  {
-    type: 'aggregationEvent',
-    version: 'v0.0.1',
-  },
-  {
-    exampleField: 'example data',
-    // Add more fields as needed...
-  },
-)
-  .then((results) => {
-    // Handle the test results here
-  })
-  .catch((error) => {
-    // Handle any errors here
-  });
-```
-
-With remote schema:
-
-```js
-testCredentialHandler(
-  {
-    type: '',
-    version: '',
-    url: 'https://jargon.sh/user/unece/traceabilityEvents/v/working/artefacts/jsonSchemas/render.json?class=AggregationEvent',
-  },
-  {
-    exampleField: 'example data',
-    // Add more fields as needed...
-  },
-)
-  .then((results) => {
-    // Handle the test results here
-  })
-  .catch((error) => {
-    // Handle any errors here
-  });
-```
-
-## Integration test
-
-The integration test is used to test the UNTP Test Suite's interface, such as cli and library.
+Run only specific test types using tags:
 
 ```bash
-yarn run test:integration
+# Run only Tier 1 tests (replace credential.json with your credential file)
+npx untp-test --tag tier1 credential.json
+
+# Run only basic validation tests on directory
+npx untp-test --tag basic --directory ./credentials
+
+# Combine multiple tags
+npx untp-test --tag tier1 --tag smoke --directory ./credentials
+
+# Run validation and JSON-LD tests (replace credential.json with your credential file)
+npx untp-test --tag validation --tag jsonld credential.json
 ```
 
-### How to write test cases for the integration test?
+### Trust issuer for tier 3 tests
 
-1. Create a new folder in the `integration` directory that features the name of the test suite's interface (e.g., cli, library).
-2. Create a new file in the folder and name it as `featureA.integration.test.ts`.
-3. Write the integration test in the file.
+Use `--trust-did` option to add a trusted issuer's _Decentralized Identifier_. Current example files in `example-credentials/` directory has all credentials in a single trust graph, with a sigle root of trust - `did:web:abr.business.gov.au`. Adding trusted root issuer in this way will trust all the underlying issuers in the _DIA_ chain, accepting issued _DPP_ and _DCC_ within this trust graph.
+
+This option can be used multiple times.
+
+```bash
+npx untp-test --directory ./example-credentials/UNTP/ --trust-did=did:web:abr.business.gov.au
+```
+
+### Example Output
+
+```
+Testing 1 credential files
+
+Running UNTP validation tests...
+
+Tier 1 - W3C Verifiable Credential Validation  (tags: tier1, w3c)
+    ✔ should have access to credential state  (tags: basic, integration)
+  product-passport-simple.json
+      ✔ should be a valid JSON-LD document  (tags: jsonld) (596ms)
+      ✔ should match the VerifiableCredential 1.1 schema  (tags: schema) (126ms)
+Tier 2 - UNTP Schema Validation  (tags: tier2, untp)
+    ✔ should have access to credential state  (tags: basic, integration)
+  product-passport-simple.json
+      ✔ should validate against DigitalProductPassport UNTP schema  (tags: schema) (105ms)
+Tier 3 - UNTP RDF Validation  (tags: tier3, untp)
+    ✔ should have access to credential state  (tags: basic, integration) (1ms)
+    ✔ conformity-credential-simple.json should be a valid RDF document.  (tags: rdf) (1169ms)
+    ✔ identity-anchor-for-dcc-issuer.json should be a valid RDF document.  (tags: rdf) (831ms)
+    ✔ identity-anchor-for-dia-issuer.json should be a valid RDF document.  (tags: rdf) (857ms)
+    ✔ identity-anchor-for-dpp-issuer.json should be a valid RDF document.  (tags: rdf) (810ms)
+    ✔ product-passport-simple.json should be a valid RDF document.  (tags: rdf) (889ms)
+Running 3 inference rules...
+Executing inference rule: 10-infer-product-claim-criteria-verified.n3
+Executing inference rule: 20-infer-product-claim-verified.n3
+Executing inference rule: 30-infer-identity-verified.n3
+Inference succeded: true. Total RDF quads in graph: 132
+  Verifications
+      ✖ should verify all product claims and issuer trust chains
+        Product "EV battery 300Ah", Claim "conformityTopicCode#environment.emissions", Criterion "GBA Battery rule book v2.0 battery assembly guidelines": should be verified in Digital Conformity Credential: expected undefined not to be undefined
+
+  5 passing (835ms)
+  1 failing
+
+error Command failed with exit code 1.
+```
+
+## Example Browser Usage
+
+A small example browser test page has been generated that shows how you can run
+the same tests with the same test runner, in a browser environment.
+
+### Quick Start
+
+1. Build the browser bundle:
+
+```bash
+cd packages/untp-test-suite
+yarn build:browser
+yarn browser-test
+```
+
+2. Open `http://localhost:8080` in your browser
+
+3. Upload credential files (.json or .jsonld) using drag & drop or file selection
+
+4. Optionally upload extension schema mapping JSON files for custom credential types
+
+5. Optionally add tags for filtering (e.g., `tier1`, `validation`, `smoke`)
+
+6. Optionally add trusted issuer DID (e.g., `did:web:abr.business.gov.au`)
+
+7. Click "🚀 Run Tests" to see real-time results
+
+Note that re-running tests uses the browser's cache automatically and so schemas are not re-fetched (and there's a [task](memory-bank/tasks/TASK006-persistent-http-cache.md) to
+get the same behaviour on the CLI).
+
+### Integration in Web Applications
+
+Include the browser bundle in your web application:
+
+```html
+<!-- Load Mocha and dependencies -->
+<script src="https://unpkg.com/mocha@10.2.0/mocha.js"></script>
+<script src="https://unpkg.com/chai@4.3.10/chai.js"></script>
+
+<!-- Load AJV for JSON schema validation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.17.1/ajv2020.bundle.min.js"></script>
+
+<!-- Load JSON-LD for JSON-LD validation -->
+<script src="https://unpkg.com/jsonld@8/dist/jsonld.min.js"></script>
+
+<!-- Load eyereasoner for tier 3 graph validation -->
+<script src="https://eyereasoner.github.io/eye-js/18/latest/index.js"></script>
+
+<!-- Initialize Mocha -->
+<script>
+  mocha.setup('bdd');
+</script>
+
+<!-- Load UNTP Test Suite -->
+<script src="browser-bundle.js"></script>
+
+<script>
+  // Set up credential data
+  const credentialData = new Map();
+  credentialData.set('credential.json', '{"@context": [...], "type": [...]}');
+  setCredentialData(credentialData);
+
+  // Add trusted issuer DID
+  const trustedDIDs = ['did:web:abr.business.gov.au'];
+  untpTestSuite.trustedDIDs.length = 0;
+  untpTestSuite.trustedDIDs.push(...trustedDIDs);
+
+  // Run tests with extension schema mappings
+  const runner = new UNTPTestRunner();
+  const results = await runner.run({
+    tags: ['tier1'], // Optional tag filtering
+    extensionSchemaMaps: [extensionMappingObject], // Optional extension mappings
+    mochaSetupCallback: (mochaOptions) => {
+      const mocha = new Mocha(mochaOptions);
+      mocha.cleanReferencesAfterRun(false);
+      return mocha;
+    }
+  }, (event) => {
+    // Handle streaming test results
+    console.log(`${event.type}:`, event.data);
+  });
+
+  console.log('Tests completed:', results.success ? 'PASSED' : 'FAILED');
+</script>
+```
+
+See the [example browser-test](browser-test) for more info.
+
+## Programmatic Usage
+
+### Node.js
+
+```typescript
+import { UNTPTestRunner, setCredentialData, trustedDIDs } from '@uncefact/untp-test-suite';
+import * as fs from 'fs';
+
+// Set up credential data (replace 'credential.json' with your credential file path)
+const credentialData = new Map();
+const content = fs.readFileSync('credential.json', 'utf8');
+credentialData.set('credential.json', content);
+setCredentialData(credentialData);
+
+// Add trusted issuer DID
+const trustedDIDs = ['did:web:abr.business.gov.au'];
+trustedDIDs.length = 0;
+trustedDIDs.push(...trustedDIDs);
+
+// Run tests with extension schema mappings
+const runner = new UNTPTestRunner();
+const results = await runner.run(
+  {
+    tags: ['tier1', 'validation'],
+    extensionSchemaMaps: ['./extensions/custom-mappings.json'], // Optional extension mappings
+    mochaSetupCallback: (mochaOptions) => {
+      const Mocha = require('mocha');
+      const mocha = new Mocha(mochaOptions);
+
+      // Load test helpers
+      require('./test-helpers');
+
+      // Add test files
+      mocha.addFile('./untp-tests/tier1/dummy.test.js');
+
+      return mocha;
+    },
+  },
+  (event) => {
+    // Stream results in real-time
+    if (event.type === 'pass') {
+      console.log(`✔ ${event.data.title}`);
+    } else if (event.type === 'fail') {
+      console.log(`✖ ${event.data.title}`);
+    }
+  },
+);
+
+console.log(`Tests: ${results.stats.passes} passed, ${results.stats.failures} failed`);
+```
+
+See the [CLI untp-test command](src/bin/untp-test.ts) for more info.
+
+## Available Tags
+
+Tests can include any `tag:tagname` in their title to enable filtering by that tag when running tests in both the CLI and web environments.
+
+## Extension Testing
+
+The test suite automatically validates credentials with extension types. When a credential contains custom types (like `DigitalLivestockPassport`) before the standard UNTP type, the suite will:
+
+1. **Detect Extension Types**: Automatically identify extension types in the credential's type array
+2. **Validate Against Extension Schemas**: Create individual tests for each extension type found
+3. **Use Schema Mappings**: Resolve extension schema URLs using provided mapping files
+
+### Example Extension Credential
+
+```json
+{
+  "type": ["DigitalLivestockPassport", "DigitalProductPassport", "VerifiableCredential"],
+  "@context": ["https://www.w3.org/ns/credentials/v2", "..."],
+  "credentialSubject": { "...": "..." }
+}
+```
+
+This credential will generate tests for:
+
+- W3C VerifiableCredential validation (Tier 1)
+- DigitalProductPassport UNTP schema validation (Tier 2)
+- DigitalLivestockPassport extension schema validation (Tier 2)
+
+### Custom Test Suites
+
+For additional custom test logic, add your test files in the `mochaSetupCallback`:
+
+```typescript
+mochaSetupCallback: (mochaOptions) => {
+  const mocha = new Mocha(mochaOptions);
+
+  // Add built-in tests
+  mocha.addFile('./untp-tests/tier1/basic.test.js');
+
+  // Add your custom tests
+  mocha.addFile('./my-tests/custom-validation.test.js');
+
+  return mocha;
+};
+```
+
+This will be exposed in the CLI at a later point.
+
+## API Reference
+
+### UNTPTestRunner
+
+Main test execution class that works in both Node.js and browser environments.
+
+#### `run(options, onStream?): Promise<UNTPTestResults>`
+
+- **options**: `UNTPTestOptions` - Test configuration
+- **onStream**: `(event: StreamEvent) => void` - Optional streaming callback to receive real-time events for test execution
+- **returns**: `Promise<UNTPTestResults>` - Test execution results
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Related Projects
+
+The following projects both within this repository are potential users of this new untp-test-suite:
+
+- [UNTP Playground](../untp-playground) - Web interface for UNTP credential testing that I envisage will use this new untp-test-suite.
+- [tests-untp E2E](../../e2e) - end to end test that is currently the only library using the existing untp-test-suite.

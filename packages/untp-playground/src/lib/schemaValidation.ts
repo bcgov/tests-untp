@@ -1,16 +1,55 @@
 import addFormats from 'ajv-formats';
 import Ajv2020 from 'ajv/dist/2020';
-import { VCDM_SCHEMA_URLS, VCDMVersion } from '../../constants';
+import {
+  API_BASE_PATH,
+  UNTP_CORE_SCHEMA_FILENAMES,
+  UNTP_SHORT_CREDENTIAL_TYPES,
+  VCDM_SCHEMA_URLS,
+  VCDMVersion,
+} from '../../constants';
 import { detectCredentialType, detectVersion } from './credentialService';
+import { isUntpV070OrAbove } from './utils';
 
 const ajv = new Ajv2020({
   allErrors: true,
   strict: false,
   validateFormats: false,
+  verbose: true,
 });
 addFormats(ajv);
 
 export const schemaCache = new Map<string, any>();
+// Stores the in-flight Promise for each URL so concurrent callers requesting the same URL
+// await one shared fetch. Without this, the existing `has`/`set` cache check leaves a
+// window where N callers can each see "not cached" and each issue their own fetch.
+const inflightSchemaFetches = new Map<string, Promise<any>>();
+
+async function fetchSchema(schemaUrl: string): Promise<any> {
+  if (schemaCache.has(schemaUrl)) {
+    return schemaCache.get(schemaUrl);
+  }
+  const inflight = inflightSchemaFetches.get(schemaUrl);
+  if (inflight) {
+    return inflight;
+  }
+  const proxyUrl = `${API_BASE_PATH}/api/schema?url=${encodeURIComponent(schemaUrl)}`;
+  // Evict the in-flight entry once settled so a transient failure doesn't poison the cache.
+  const promise = (async () => {
+    try {
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch schema: ${response.status} ${response.statusText}`);
+      }
+      const schema = await response.json();
+      schemaCache.set(schemaUrl, schema);
+      return schema;
+    } finally {
+      inflightSchemaFetches.delete(schemaUrl);
+    }
+  })();
+  inflightSchemaFetches.set(schemaUrl, promise);
+  return promise;
+}
 
 interface CoreVersion {
   type: string;
@@ -52,14 +91,14 @@ export const EXTENSION_VERSIONS: Record<string, ExtensionConfig> = {
 };
 
 const schemaURLConstructor = (type: string, version: string) => {
-  const shortCredentialTypes: Record<string, string> = {
-    DigitalProductPassport: 'dpp',
-    DigitalConformityCredential: 'dcc',
-    DigitalTraceabilityEvent: 'dte',
-    DigitalFacilityRecord: 'dfr',
-    DigitalIdentityAnchor: 'dia',
-  };
-  return `https://test.uncefact.org/vocabulary/untp/${shortCredentialTypes[type]}/untp-${shortCredentialTypes[type]}-schema-${version}.json`;
+  const shortType = UNTP_SHORT_CREDENTIAL_TYPES[type];
+
+  if (isUntpV070OrAbove(version)) {
+    const fileName = UNTP_CORE_SCHEMA_FILENAMES[type];
+    return `https://untp.unece.org/artefacts/schema/v${version}/${shortType}/${fileName}.json`;
+  }
+
+  return `https://test.uncefact.org/vocabulary/untp/${shortType}/untp-${shortType}-schema-${version}.json`;
 };
 
 const findExtensionSchemaURL = (type: string, version: string) => {
@@ -142,22 +181,15 @@ export function detectExtension(credential: any):
 
 async function validateCredentialOnSchemaUrl(credential: any, schemaUrl: string, relaxFunction?: (schema: any) => any) {
   try {
-    if (!schemaCache.has(schemaUrl)) {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_PATH || '';
-      const proxyUrl = `${baseUrl}/api/schema?url=${encodeURIComponent(schemaUrl)}`;
-      const schemaResponse = await fetch(proxyUrl);
-
-      if (!schemaResponse.ok) {
-        throw new Error(`Failed to fetch schema: ${schemaResponse.statusText}`);
-      }
-
-      const schema = await schemaResponse.json();
-      schemaCache.set(schemaUrl, schema);
-    }
-
-    let schema = schemaCache.get(schemaUrl);
+    let schema = await fetchSchema(schemaUrl);
     if (relaxFunction) {
-      schema = relaxFunction(schema);
+      // Clone before relaxing so we never mutate the cached schema, and drop $id so
+      // AJV compiles a fresh validator rather than returning the strict one it cached
+      // by $id from an earlier non-relaxed call. JSON.parse/stringify is sufficient
+      // because JSON Schema documents are by definition JSON-serialisable.
+      const clone = JSON.parse(JSON.stringify(schema));
+      delete clone.$id;
+      schema = relaxFunction(clone);
     }
 
     const validate = ajv.compile(schema);

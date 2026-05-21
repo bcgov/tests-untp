@@ -1,7 +1,7 @@
-// remove these comment when ready to export
+/**
+ * UNTP Test Suite Mocha - Main Library Entry Point
+ *
+ * A reusable Mocha-based testing library for UNTP (United Nations Transparency Protocol) credentials
+ */
 
-// export * from './config';
-// export * from './core';
-export * from './interfaces/index.js';
-// export * from './schemas'
-// export * from './templates'
+export * from './untp-test';

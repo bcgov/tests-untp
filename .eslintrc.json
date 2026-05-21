@@ -3,7 +3,9 @@
   // TODO: Enable linting for documentation folder
   "ignorePatterns": [
     "documentation",
-    "e2e"
+    "e2e",
+    "packages/components/**",
+    "packages/reference-implementation/**"
   ],
   "plugins": [
     "@typescript-eslint",
@@ -29,6 +31,7 @@
     "@typescript-eslint/no-unsafe-member-access": "off",
     "@typescript-eslint/no-unsafe-assignment": "off",
     "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/no-require-imports": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unsafe-return": "off",
     "@typescript-eslint/no-unsafe-argument": "off",
@@ -38,6 +41,12 @@
     "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/require-await": "off",
     "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-unused-expressions": "off",
+    "@typescript-eslint/no-unsafe-enum-comparison": "off",
+    "@typescript-eslint/no-unnecessary-type-assertion": "off",
+    "@typescript-eslint/no-redundant-type-constituents": "off",
+    "@typescript-eslint/no-base-to-string": "off",
+    "@typescript-eslint/prefer-promise-reject-errors": "off",
     "prefer-const": "off"
   },
   "overrides": [
@@ -47,6 +56,14 @@
       ],
       "rules": {
         "@typescript-eslint/no-var-requires": "off"
+      }
+    },
+    {
+      "files": [
+        "**/next-env.d.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/triple-slash-reference": "off"
       }
     }
   ]

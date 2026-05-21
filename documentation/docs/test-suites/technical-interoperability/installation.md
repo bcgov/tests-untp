@@ -7,7 +7,7 @@ import Disclaimer from '../../\_disclaimer.mdx';
 
 <Disclaimer />
 
-Before you begin installing the Tier 1 test suite, ensure that you have the [dependant services](/docs/mock-apps/dependent-services/) and the following prerequisites in place:
+Before you begin installing the Tier 1 test suite, ensure that you have the [dependant services](/docs/reference-implementation/dependent-services/) and the following prerequisites in place:
 
 ### Prerequisites
 
@@ -17,11 +17,11 @@ Before you begin installing the Tier 1 test suite, ensure that you have the [dep
    git clone https://github.com/uncefact/tests-untp.git
    ```
 
-2. Node.js version 20.12.2: Make sure you have Node.js version 20.12.2 installed on your system. You can download it from the official Node.js website: [https://nodejs.org](https://nodejs.org)
+2. Node.js version 22.22.2: Make sure you have Node.js version 22.22.2 installed on your system. You can download it from the official Node.js website: [https://nodejs.org](https://nodejs.org)
 
 3. Yarn version 1.22.22: Ensure that you have Yarn version 1.22.22 installed. You can install it by running the following command:
    ```
-   npm install -g yarn@1.22.22
+   corepack enable
    ```
 
 ### Installation Steps
@@ -37,7 +37,7 @@ Once you have met the prerequisites, follow these steps to install the test suit
 2. Install the dependencies using Yarn:
 
    ```
-   yarn install
+   pnpm install
    ```
 
 3. Create a folder named reports:

@@ -1,0 +1,92 @@
+{
+  "name": "@uncefact/untp-utils",
+  "version": "0.1.0",
+  "description": "Shared utility primitives for UNTP packages and consumers.",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    },
+    "./multibase-digest": {
+      "types": "./build/multibase-digest/index.d.ts",
+      "default": "./build/multibase-digest/index.js"
+    },
+    "./conformity-vocabulary": {
+      "types": "./build/conformity-vocabulary/index.d.ts",
+      "default": "./build/conformity-vocabulary/index.js"
+    },
+    "./validation": {
+      "types": "./build/validation/index.d.ts",
+      "default": "./build/validation/index.js"
+    },
+    "./schema-loaders": {
+      "types": "./build/schema-loaders/index.d.ts",
+      "default": "./build/schema-loaders/index.js"
+    },
+    "./node": {
+      "types": "./build/node/index.d.ts",
+      "default": "./build/node/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "multibase-digest": [
+        "./build/multibase-digest/index.d.ts"
+      ],
+      "conformity-vocabulary": [
+        "./build/conformity-vocabulary/index.d.ts"
+      ],
+      "validation": [
+        "./build/validation/index.d.ts"
+      ],
+      "schema-loaders": [
+        "./build/schema-loaders/index.d.ts"
+      ],
+      "node": [
+        "./build/node/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc --build --clean && tsc",
+    "watch": "tsc -b --watch",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+  },
+  "type": "module",
+  "keywords": [
+    "untp",
+    "multibase",
+    "multihash",
+    "digest",
+    "conformity-vocabulary"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uncefact/tests-untp.git",
+    "directory": "packages/untp-utils"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "ipaddr.js": "^2.4.0",
+    "jsonld": "^8.3.3",
+    "multiformats": "^13.3.1"
+  },
+  "devDependencies": {
+    "@jest/globals": "29.7.0",
+    "@types/jest": "29.5.11",
+    "@types/jsonld": "^1.5.15",
+    "cross-env": "^7.0.3",
+    "jest": "29.7.0",
+    "ts-jest": "29.1.1",
+    "typescript": "^5.3.3"
+  }
+}

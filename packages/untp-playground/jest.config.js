@@ -16,8 +16,6 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^lucide-react$': '<rootDir>/node_modules/lucide-react/dist/cjs/lucide-react.js',
-    '^react$': '<rootDir>/node_modules/react',
-    '^react-dom$': '<rootDir>/node_modules/react-dom',
     '^.+\\.hbs$': '<rootDir>/__tests__/mocks/handlebars.ts',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],

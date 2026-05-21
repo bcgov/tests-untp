@@ -9,7 +9,7 @@ import Disclaimer from './../../../\_disclaimer.mdx';
 
 The QR Link / Encryption feature is a crucial component of the UNTP ecosystem, providing a standardised way to access, verify, and render credentials.
 
-For detailed information about the Verify Link structure and usage, please refer to the [Verify Link documentation](/docs/mock-apps/common/verify-link).
+For detailed information about the Verify Link structure and usage, please refer to the [Verify Link documentation](/docs/reference-implementation/common/verify-link).
 
 ## Testing Instructions
 
@@ -45,7 +45,7 @@ To test your QR Link / Encryption implementation, follow these steps:
 3. **Run the Test**:
 
    - Navigate to `packages/vc-test-suite`
-   - In your terminal, run the command: `yarn test`
+   - In your terminal, run the command: `pnpm test`
 
 4. **View Test Results**:
    - Navigate to `packages/vc-test-suite/reports/index.html`

@@ -1,10 +1,23 @@
 name: Deploy to GitHub Pages
 
+# Only fires when files relevant to the Docusaurus build change. Pushes
+# that do not touch any of these paths leave the GitHub Pages site as-is
+# and do not consume action minutes.
 on:
   push:
     branches:
       - next
       - main
+    paths:
+      - 'documentation/**'
+      - '.github/workflows/buld_publish_docs.yml'
+      - '.nvmrc'
+
+# peaceiris/actions-gh-pages pushes the built site to the gh-pages branch,
+# which needs contents: write. Everything else stays at the default-deny
+# baseline that CodeQL's actions/missing-workflow-permissions rule expects.
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -12,16 +25,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: yarn
+          node-version-file: '.nvmrc'
+          cache: pnpm
 
       - name: Install dependencies
-        run: cd documentation && yarn install --frozen-lockfile
+        run: cd documentation && pnpm install --ignore-workspace --frozen-lockfile
 
       - name: Build website
-        run: cd documentation && yarn build
+        run: cd documentation && pnpm build
         env:
           DOCS_BASE_URL: ${{ vars.DOCS_BASE_URL }}
           DOCS_URL: ${{ vars.DOCS_URL }}
@@ -48,7 +63,7 @@ jobs:
       # Popular action to deploy to GitHub Pages:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Build output to publish to the `gh-pages` branch:

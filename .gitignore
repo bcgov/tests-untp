@@ -35,6 +35,8 @@ yarn-error.log
 testem.log
 /typings
 .env
+.env.e2e
+.env.e2e.*
 minio_data/*
 
 # Yarn
@@ -47,7 +49,6 @@ minio_data/*
 *~
 /examples/*/node_modules/
 /examples/*/build/
-/docs
 /report
 **/build/
 **/*.log
@@ -60,8 +61,6 @@ minio_data/*
 
 **/uploads/
 
-
-.npmrc
 
 npm-debug.log
 npm-debug.log*
@@ -80,6 +79,18 @@ packages/vc-test-suite/suite.log
 packages/vc-test-suite/reports
 
 # cypress
-e2e/cypress/screenshots
-e2e/cypress/downloads
-e2e/cypress/screenshots
+packages/*/e2e/cypress/screenshots
+packages/*/e2e/cypress/downloads
+packages/*/e2e/cypress/videos
+
+
+# Local Claude Code files
+.claude/
+CONTEXT.md
+
+# Git worktrees
+.worktrees/
+
+# Turborepo local cache
+.turbo/
+**/.turbo/

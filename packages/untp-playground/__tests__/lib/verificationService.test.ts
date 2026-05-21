@@ -1,84 +1,66 @@
-import { verifyCredential } from '@/lib/verificationService';
+describe('verifyCredential', () => {
+  const originalBasePath = process.env.NEXT_PUBLIC_BASE_PATH;
 
-// Mock fetch globally
-global.fetch = jest.fn();
-
-describe('verificationService', () => {
-  // Reset mocks before each test
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.resetModules();
   });
 
-  test('successfully verifies a credential', async () => {
-    const mockResponse = { verified: true, results: [] };
-    const mockCredential = { id: '123', type: ['VerifiableCredential'] };
+  afterEach(() => {
+    if (originalBasePath === undefined) {
+      delete process.env.NEXT_PUBLIC_BASE_PATH;
+    } else {
+      process.env.NEXT_PUBLIC_BASE_PATH = originalBasePath;
+    }
+  });
 
-    // Mock successful fetch response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+  it('sends credential to local API route when no base path is set', async () => {
+    delete process.env.NEXT_PUBLIC_BASE_PATH;
+    const mockResponse = { verified: true };
+    global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => mockResponse,
+      json: () => Promise.resolve(mockResponse),
     });
 
-    const result = await verifyCredential(mockCredential);
+    const { verifyCredential } = await import('@/lib/verificationService');
+    const result = await verifyCredential({ type: 'VerifiableCredential' });
 
-    // Verify the result
-    expect(result).toEqual(mockResponse);
-
-    // Verify fetch was called with correct parameters
-    expect(global.fetch).toHaveBeenCalledWith('https://vckit.untp.showthething.com/agent/routeVerificationCredential', {
+    expect(global.fetch).toHaveBeenCalledWith('/api/verify', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer test123',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        credential: mockCredential,
-        fetchRemoteContexts: true,
-        policies: {
-          credentialStatus: false,
-        },
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: { type: 'VerifiableCredential' } }),
     });
+    expect(result).toEqual(mockResponse);
   });
 
-  test('handles non-ok response from API', async () => {
-    const mockCredential = { id: '123', type: ['VerifiableCredential'] };
-
-    // Mock failed fetch response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 400,
-      statusText: 'Bad Request',
-    });
-
-    // Verify that the function throws an error
-    await expect(verifyCredential(mockCredential)).rejects.toThrow('Verification failed');
-  });
-
-  test('handles network error', async () => {
-    const mockCredential = { id: '123', type: ['VerifiableCredential'] };
-    const networkError = new Error('Network error');
-
-    // Mock network error
-    (global.fetch as jest.Mock).mockRejectedValueOnce(networkError);
-
-    // Verify that the function throws the network error
-    await expect(verifyCredential(mockCredential)).rejects.toThrow(networkError);
-  });
-
-  test('handles JSON parsing error', async () => {
-    const mockCredential = { id: '123', type: ['VerifiableCredential'] };
-    const jsonError = new Error('Invalid JSON');
-
-    // Mock successful fetch but failed JSON parsing
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+  it('prefixes the request with NEXT_PUBLIC_BASE_PATH when set', async () => {
+    process.env.NEXT_PUBLIC_BASE_PATH = '/test-untp-playground';
+    global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => {
-        throw jsonError;
-      },
+      json: () => Promise.resolve({ verified: true }),
     });
 
-    // Verify that the function throws the JSON parsing error
-    await expect(verifyCredential(mockCredential)).rejects.toThrow(jsonError);
+    const { verifyCredential } = await import('@/lib/verificationService');
+    await verifyCredential({ type: 'VerifiableCredential' });
+
+    expect(global.fetch).toHaveBeenCalledWith('/test-untp-playground/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: { type: 'VerifiableCredential' } }),
+    });
+  });
+
+  it('throws on non-ok response', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
+
+    const { verifyCredential } = await import('@/lib/verificationService');
+    await expect(verifyCredential({})).rejects.toThrow('Verification failed');
+  });
+
+  it('throws on network error', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+    const { verifyCredential } = await import('@/lib/verificationService');
+    await expect(verifyCredential({})).rejects.toThrow('Network error');
   });
 });

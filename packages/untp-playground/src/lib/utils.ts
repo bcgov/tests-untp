@@ -5,6 +5,15 @@ import { twMerge } from 'tailwind-merge';
 import templateContent from '@/lib/templates/untp-comformance-report-template.hbs';
 import { CredentialType, permittedCredentialTypes, VCDM_CONTEXT_URLS, VCDMVersion } from '../../constants';
 
+handlebars.registerHelper('eq', (a: unknown, b: unknown) => a === b);
+
+handlebars.registerHelper('formatDate', (value: unknown) => {
+  if (typeof value !== 'string') return value;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+});
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -36,6 +45,18 @@ export function detectVcdmVersion(credential: Record<string, any>): VCDMVersion 
 
 export function isPermittedCredentialType(type: CredentialType): type is PermittedCredentialType {
   return permittedCredentialTypes.includes(type as PermittedCredentialType);
+}
+
+/**
+ * Returns true when the given UNTP version string is v0.7.0 or newer.
+ * Used to switch between legacy and current schema URL formats.
+ */
+export function isUntpV070OrAbove(version: string): boolean {
+  const match = version.match(/^(\d+)\.(\d+)/);
+  if (!match) return false;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return major > 0 || (major === 0 && minor >= 7);
 }
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {

@@ -7,22 +7,11 @@ export enum Status {
   error = 'error',
   warning = 'warning',
   info = 'info',
-};
+}
 
 // The function for displaying toast messages
-export function toastMessage({ status, message, linkURL }: {
-  status: Status;
-  message: string;
-  linkURL: string;
-}): void {
-  toast[status](
-    <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-      <div>
-        {message}
-      </div>
-      {linkURL && <a style={{fontSize: '12px'}} href={linkURL} target="_blank">Open VC</a> }
-    </div>, 
-    {
+export function toastMessage({ status, message }: { status: Status; message: string }): void {
+  toast[status](message, {
     position: 'top-right',
     hideProgressBar: true,
     //closeOnClick: true,

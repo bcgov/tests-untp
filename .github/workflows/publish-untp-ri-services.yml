@@ -1,0 +1,105 @@
+name: 'Publish — @uncefact/untp-ri-services'
+
+# Per-package publish workflow for @uncefact/untp-ri-services. Triggers on
+# push of a tag matching `untp-ri-services-v<X.Y.Z>` (stable) or the
+# `<X.Y.Z>-rc.N` / `-alpha.N` / `-beta.N` / `-pre.N` pre-release variants.
+# The tag is the release event; this workflow publishes the artefact and
+# nothing else.
+#
+# Services may depend on @uncefact/untp-utils via the workspace protocol.
+# `npm publish` does NOT rewrite `workspace:*` specifiers; if such a dep is
+# introduced in packages/services/package.json, the publish step must
+# replace it with a concrete semver range before running, otherwise the
+# published manifest will contain an invalid `workspace:*` specifier and
+# installers will fail. There is no such workspace dep at the time of
+# writing.
+#
+# Authentication uses npm OIDC Trusted Publishing. The npmjs.com Trusted
+# Publisher for `@uncefact/untp-ri-services` must be configured to point at
+# this workflow filename. Publish is done via `npm publish` (not
+# `pnpm publish`) because pnpm 9.x still uses the legacy `_authToken` flow.
+#
+# OIDC Trusted Publishing requires npm CLI >= 11.5.0. Node 22 (pinned via
+# .nvmrc) bundles npm 10.x, so the publish step shells out to `npx npm@11`
+# instead of using the system npm. Self-upgrading the system npm with
+# `npm install --global npm@11` is fragile (tears down the running
+# process's own node_modules mid-install); npx fetches the binary into a
+# temp location and runs it directly.
+#
+# See ADR 031: docs/adrs/031-per-package-tag-triggered-npm-release.md
+
+on:
+  push:
+    tags:
+      - 'untp-ri-services-v*'
+
+concurrency:
+  group: publish-untp-ri-services-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'uncefact'
+
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify checkout
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          if [ "$ACTUAL" != "${{ github.sha }}" ]; then
+            echo "::error::Wrong checkout. Expected ${{ github.sha }}, got $ACTUAL"
+            exit 1
+          fi
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter '@uncefact/untp-ri-services...'
+
+      - name: Verify tag/package version match
+        run: node scripts/check-tag-version-match.mjs untp-ri-services-v packages/services
+
+      - name: Build
+        # Build utils first so services links against fresh dist; services'
+        # build then emits its own dist.
+        run: |
+          pnpm --filter '@uncefact/untp-utils' run build
+          pnpm --filter '@uncefact/untp-ri-services' run build
+
+      - name: Determine npm dist-tag
+        id: dist
+        run: |
+          if [[ "${GITHUB_REF_NAME}" =~ -(rc|alpha|beta|pre)\. ]]; then
+            echo "tag=rc" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish
+        working-directory: packages/services
+        env:
+          NPM_CONFIG_PROVENANCE: 'true'
+        # Use npx to fetch npm@11 into a temp location instead of upgrading
+        # the system npm in place. Self-upgrading npm with
+        # `npm install --global npm@11` tears down the running process's
+        # own node_modules (e.g. `promise-retry`) mid-install and crashes.
+        # npx avoids that by running an isolated npm 11 binary.
+        run: npx --yes npm@11 publish --access public --tag ${{ steps.dist.outputs.tag }}
