@@ -8,8 +8,38 @@
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "groups": [
-    { "name": "acme-corp", "path": "/acme-corp" },
-    { "name": "globex-inc", "path": "/globex-inc" }
+    {
+      "name": "acme-corp",
+      "path": "/acme-corp"
+    },
+    {
+      "name": "globex-inc",
+      "path": "/globex-inc"
+    },
+    {
+      "name": "copper-mine",
+      "path": "/copper-mine"
+    },
+    {
+      "name": "copper-smelter",
+      "path": "/copper-smelter"
+    },
+    {
+      "name": "battery-manufacturer",
+      "path": "/battery-manufacturer"
+    },
+    {
+      "name": "coppermark",
+      "path": "/coppermark"
+    },
+    {
+      "name": "orgbook",
+      "path": "/orgbook"
+    },
+    {
+      "name": "tsm",
+      "path": "/tsm"
+    }
   ],
   "users": [
     {
@@ -27,7 +57,9 @@
         }
       ],
       "requiredActions": [],
-      "groups": ["/acme-corp"]
+      "groups": [
+        "/acme-corp"
+      ]
     },
     {
       "username": "user@example.com",
@@ -44,19 +76,139 @@
         }
       ],
       "requiredActions": [],
-      "groups": ["/globex-inc"]
+      "groups": [
+        "/globex-inc"
+      ]
     },
     {
       "username": "service-account-ri-service-account",
       "enabled": true,
       "serviceAccountClientId": "ri-service-account",
-      "groups": ["/acme-corp"]
+      "groups": [
+        "/acme-corp"
+      ]
     },
     {
       "username": "service-account-ri-service-account-2",
       "enabled": true,
       "serviceAccountClientId": "ri-service-account-2",
-      "groups": ["/globex-inc"]
+      "groups": [
+        "/globex-inc"
+      ]
+    },
+    {
+      "username": "mine@example.com",
+      "email": "mine@example.com",
+      "firstName": "Copper",
+      "lastName": "Mine",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "changeme",
+          "temporary": false
+        }
+      ],
+      "requiredActions": [],
+      "groups": [
+        "/copper-mine"
+      ]
+    },
+    {
+      "username": "smelter@example.com",
+      "email": "smelter@example.com",
+      "firstName": "Copper",
+      "lastName": "Smelter",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "changeme",
+          "temporary": false
+        }
+      ],
+      "requiredActions": [],
+      "groups": [
+        "/copper-smelter"
+      ]
+    },
+    {
+      "username": "battery@example.com",
+      "email": "battery@example.com",
+      "firstName": "Battery",
+      "lastName": "Manufacturer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "changeme",
+          "temporary": false
+        }
+      ],
+      "requiredActions": [],
+      "groups": [
+        "/battery-manufacturer"
+      ]
+    },
+    {
+      "username": "coppermark@example.com",
+      "email": "coppermark@example.com",
+      "firstName": "CopperMark",
+      "lastName": "Certifier",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "changeme",
+          "temporary": false
+        }
+      ],
+      "requiredActions": [],
+      "groups": [
+        "/coppermark"
+      ]
+    },
+    {
+      "username": "orgbook@example.com",
+      "email": "orgbook@example.com",
+      "firstName": "OrgBook",
+      "lastName": "Certifier",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "changeme",
+          "temporary": false
+        }
+      ],
+      "requiredActions": [],
+      "groups": [
+        "/orgbook"
+      ]
+    },
+    {
+      "username": "tsm@example.com",
+      "email": "tsm@example.com",
+      "firstName": "TSM",
+      "lastName": "Certifier",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "changeme",
+          "temporary": false
+        }
+      ],
+      "requiredActions": [],
+      "groups": [
+        "/tsm"
+      ]
     }
   ],
   "clients": [
