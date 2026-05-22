@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-21  
 **Branches:** `origin/next` (target) · `origin/pyx/MSPYX-826_bcmine_v0.6.0` (source)  
-**Prerequisite:** Layers 1–2 on `rebase-attempt-1` (assets + ToastMessage)
+**Prerequisite:** Layers 1–2 on `bcmine-next` (assets + ToastMessage)
 
 ---
 
@@ -134,7 +134,7 @@ Create `examples/seed/bcmine/`:
 
 ### Phase 3b — Data import script (new tooling)
 
-**Status on `rebase-attempt-1`:** implemented.
+**Status on `bcmine-next`:** implemented.
 
 | Piece | File | Notes |
 |-------|------|--------|
@@ -167,7 +167,7 @@ Layer 3 **must not** `git merge` pyx. Use **extract → map → seed/API**.
 
 ---
 
-## Implementation status (on `rebase-attempt-1`)
+## Implementation status (on `bcmine-next`)
 
 | Phase | Status |
 |-------|--------|

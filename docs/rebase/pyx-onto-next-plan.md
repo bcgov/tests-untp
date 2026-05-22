@@ -6,7 +6,7 @@
 |--------|------|
 | `origin/next` | Current platform (default); 219 commits ahead of merge-base |
 | `origin/pyx/MSPYX-826_bcmine_v0.6.0` | BCMine v0.5/0.6 demo; 54 commits since merge-base |
-| `rebase-attempt-1` | Planning branch from `next`; documents trial merge |
+| `bcmine-next` | Long-lived BCMine port branch from `next` |
 
 **Merge-base:** `1df1529` — fix: downgrade chai and node-fetch (#331)
 
@@ -40,7 +40,7 @@
 
 ## Recommended split (layers)
 
-Apply onto `rebase-attempt-1` (from `next`) in order. Each layer is its own commit (or PR).
+Apply onto `bcmine-next` (from `next`) in order. Each layer is its own commit (or PR).
 
 ### Layer 1 — Static assets (low risk)
 
@@ -120,10 +120,10 @@ pnpm test:components
 
 ## Next steps (attempt 2+)
 
-1. ~~On `rebase-attempt-1`, commit **Layer 1** (images only) → push → PR slice 1.~~ **Done** — assets under `packages/reference-implementation/public/bcmine/` (serve as `/bcmine/<file>.png`).
+1. ~~On `bcmine-next`, commit **Layer 1** (images only) → push → PR slice 1.~~ **Done** — assets under `packages/reference-implementation/public/bcmine/` (serve as `/bcmine/<file>.png`).
 2. ~~Manually port **Layer 2** (ToastMessage PR) — validate tests.~~ **Done** — optional `linkURL` + “Open VC” link; story `WithVcLink`.
 3. ~~Spike + Phase 3a–3d~~ **Mostly done** — see [layer-3-bcmine-port-spike.md](./layer-3-bcmine-port-spike.md), [bcgov/bcmine-port-strategy.md](../bcgov/bcmine-port-strategy.md), `examples/seed/bcmine/`. Interactive `apps[]` UI still requires pyx branch or new RI work (Phase 3e UI).
-4. Keep port on **`bcmine-next`** (or `rebase-attempt-1`): `git rebase upstream/next` — never merge pyx wholesale.
+4. Keep port on **`bcmine-next`**: `git rebase upstream/next` — never merge pyx wholesale.
 
 ---
 
@@ -132,7 +132,7 @@ pnpm test:components
 ```bash
 # Recreate planning branch
 git checkout next && git pull
-git checkout -b rebase-attempt-1
+git checkout -b bcmine-next
 
 # Trial merge (expect failure)
 git merge origin/pyx/MSPYX-826_bcmine_v0.6.0 --no-commit
@@ -150,4 +150,4 @@ git diff origin/next...origin/pyx/MSPYX-826_bcmine_v0.6.0 --stat
 
 ---
 
-*Generated from merge attempt 1 on `rebase-attempt-1` (2026-05-20).*
+*Generated from merge attempt 1; port branch renamed to `bcmine-next` (2026-05-20).*

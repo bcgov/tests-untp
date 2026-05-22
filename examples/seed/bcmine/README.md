@@ -9,7 +9,7 @@ Ports the **BC Copper** demo from `pyx/MSPYX-826_bcmine_v0.6.0` onto `next` in t
 | **3c** | `entities.json` | [seed-bcmine-entities.ts](../../packages/reference-implementation/prisma/seed-bcmine-entities.ts) — facilities + products with GS1 IDs |
 | **3d** | `credentials.json` | [seed-bcmine-credentials.ts](../../packages/reference-implementation/prisma/seed-bcmine-credentials.ts) — signs via VCKit, stores via system storage |
 
-Static images live in `packages/reference-implementation/public/bcmine/` (branch `rebase-attempt-1`, Layer 1).
+Static images live in `packages/reference-implementation/public/bcmine/` (branch `bcmine-next`, Layer 1).
 
 ## Docker
 

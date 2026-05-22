@@ -23,7 +23,7 @@ git fetch upstream
 |--------|---------|
 | **`upstream/next`** | Track uncefact (read-only) |
 | **`origin/next`** | bcgov mirror of upstream + optional fast-forward |
-| **`origin/bcmine-next`** (or `rebase-attempt-1`) | **BCMine port integration** — merge target for port PRs |
+| **`origin/bcmine-next`** | **BCMine port integration** — merge target for port PRs |
 | **`pyx/…`** | Archive only — do not merge into bcmine-next |
 
 ### Pull upstream updates
