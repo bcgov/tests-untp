@@ -6,6 +6,7 @@ Ports the **BC Copper** demo from `pyx/MSPYX-826_bcmine_v0.6.0` onto `next` in t
 |-------|--------|-----------|
 | **3a** | `seed.yaml`, `render-templates/dpp-bcmine.hbs` | [custom seed](../../packages/reference-implementation/prisma/custom-seed.ts) |
 | **3b** | `actors.json` | [seed-bcmine.ts](../../packages/reference-implementation/prisma/seed-bcmine.ts) via main `seed.ts` |
+| **3b+** | `credentials.json` | [seed-bcmine-credentials.ts](../../packages/reference-implementation/prisma/seed-bcmine-credentials.ts) — signs via VCKit, stores via system storage |
 
 Static images live in `packages/reference-implementation/public/bcmine/` (branch `rebase-attempt-1`, Layer 1).
 
@@ -38,6 +39,14 @@ pnpm prisma db seed
 - Six **OrganisationEntity** rows: Copper Mine, Copper Smelter, Battery Manufacturer, CopperMark, OrgBook, TSM
 - Idempotent by organisation `name`
 
+### Credential seed (`credentials.json`)
+
+- Three demo VCs from core v0.6.0 `example-data.json` templates with BCMine overrides (DPP for **Copper Mine**, DFR for **Copper Smelter**, DCC for **CopperMark**)
+- Signed with the system VC adapter and stored like production issuance
+- `Credential` rows linked to the matching `OrganisationEntity` (idempotent per org + `credentialType`)
+- Verify in the RI UI with `uri` + `digestMultibase` from the credential record (or storage URI)
+- Skipped when VC/storage were not seeded (same env as main seed)
+
 ## Environment
 
 | Variable | Default | Effect |
@@ -49,7 +58,8 @@ pnpm prisma db seed
 ## Not included (see spike doc)
 
 - Old `app-config.json` **apps / features / JsonForm** issuance flows — removed on `next` ([#458](https://github.com/bcgov/tests-untp/pull/458))
-- Pre-issued credential payloads and IDR links — future import script / API batch
+- IDR link registration for seeded identifiers — use RI APIs or extend seed later
+- Interactive multi-actor issuance UX (pyx `app-config` apps/features)
 
 Full analysis: [docs/rebase/layer-3-bcmine-port-spike.md](../../docs/rebase/layer-3-bcmine-port-spike.md)
 

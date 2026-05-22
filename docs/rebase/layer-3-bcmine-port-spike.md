@@ -134,15 +134,16 @@ Create `examples/seed/bcmine/`:
 
 ### Phase 3b — Data import script (new tooling)
 
-Extract from pyx JSON:
+**Status on `rebase-attempt-1`:** implemented.
 
-- Organisation names (Mine, Smelter, Battery, CopperMark, OrgBook, TSM)
-- Sample **credential payloads** and **IDR links** already wired in config
-- `did:web` identifiers from pyx commits
+| Piece | File | Notes |
+|-------|------|--------|
+| Organisations | `examples/seed/bcmine/actors.json` → `seed-bcmine.ts` | Six actors + tenant colours |
+| Credentials | `examples/seed/bcmine/credentials.json` → `seed-bcmine-credentials.ts` | Three VCs (DPP/DFR/DCC @ v0.6.0 templates + overrides); sign + store when VC/storage seeded |
 
-Load via REST (`/api/v1/organisations`, `/facilities`, `/products`, `/credentials`) or a **`prisma/seed-bcmine.ts`** invoked after main seed.
+Still manual / future: facilities, products with IDR identifiers, `LinkRegistration` rows, full pyx credential graph.
 
-**Proof-of-one:** one organisation + one published DPP credential + verify page works.
+**Proof-of-one:** organisation rows + verify page with seeded `storageUri` + `digestMultibase` (DPP for Copper Mine).
 
 ### Phase 3c — Interactive demo (product decision)
 

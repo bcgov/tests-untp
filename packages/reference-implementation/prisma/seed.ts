@@ -201,12 +201,15 @@ async function main() {
   let vcSeeded = false;
   let vcAdapterType: string | null = null;
   let vcConfig: unknown = null;
+  let vcRegistryEntry:
+    | (typeof adapterRegistry)[typeof ServiceType.VC][keyof (typeof adapterRegistry)[typeof ServiceType.VC]]
+    | null = null;
   if (encryptionService) {
     try {
       const vcAdapters = adapterRegistry[ServiceType.VC];
       const permittedVcTypes = Object.keys(vcAdapters) as Array<keyof typeof vcAdapters>;
       const resolvedVcAdapterType = (process.env.SYSTEM_VC_ADAPTER_TYPE as keyof typeof vcAdapters) || 'VCKIT';
-      const vcRegistryEntry = vcAdapters[resolvedVcAdapterType];
+      vcRegistryEntry = vcAdapters[resolvedVcAdapterType];
       if (!vcRegistryEntry) {
         throw new Error(
           `Unknown VC adapter type: "${resolvedVcAdapterType}". Permitted types: ${permittedVcTypes.join(', ')}`,
@@ -636,13 +639,37 @@ async function main() {
     const bcmineDir = bcmineCandidates.find((dir) => fs.existsSync(path.join(dir, 'actors.json')));
 
     if (bcmineDir) {
+      const bcmineLogger = logger.child({ module: 'seed-bcmine' });
       const { runBcmineDataSeed } = await import('./seed-bcmine.js');
       await runBcmineDataSeed({
         prisma,
-        logger: logger.child({ module: 'seed-bcmine' }),
+        logger: bcmineLogger,
         tenantId: SYSTEM_TENANT_ID,
         bcmineDir,
       });
+
+      if (vcSeeded && storageSeeded && vcRegistryEntry && vcConfig && storageRegistryEntry && storageConfig) {
+        const { runBcmineCredentialSeed } = await import('./seed-bcmine-credentials.js');
+        await runBcmineCredentialSeed({
+          prisma,
+          logger: bcmineLogger.child({ module: 'seed-bcmine-credentials' }),
+          tenantId: SYSTEM_TENANT_ID,
+          bcmineDir,
+          vcService: vcRegistryEntry.factory(
+            vcConfig as Parameters<typeof vcRegistryEntry.factory>[0],
+            bcmineLogger.child({ service: 'VC - BCMine Seed' }),
+          ),
+          storageService: storageRegistryEntry.factory(
+            storageConfig as Parameters<typeof storageRegistryEntry.factory>[0],
+            bcmineLogger.child({ service: 'Storage - BCMine Seed' }),
+          ),
+          issuerDid: defaultDid ?? didConfig?.defaultDid,
+        });
+      } else {
+        logger.info(
+          'Skipping BCMine credential seed: VC and/or storage service not seeded (SERVICE_ENCRYPTION_KEY and adapter env required)',
+        );
+      }
     }
   }
 
@@ -740,7 +767,7 @@ async function main() {
       ', data models' +
       (templatesSeeded ? ', render templates' : '') +
       ', custom seed' +
-      (process.env.SKIP_BCMINE_SEED !== 'true' ? ', BCMine actors' : '') +
+      (process.env.SKIP_BCMINE_SEED !== 'true' ? ', BCMine actors/credentials' : '') +
       (idrSeeded ? ', IDR service instance' : '') +
       (storageSeeded ? ', storage service instance' : '') +
       (vcSeeded ? ', VC service instance' : '') +
