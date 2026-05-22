@@ -8,17 +8,29 @@ describe('Toast Message', () => {
     const status = Status.success;
     const message = 'Test message';
 
-    // Render the component
     render(<ToastMessage />);
 
-    // Call the toastMessage function
     act(() => {
       toastMessage({ status, message });
     });
 
-    // Check that the toast message is correctly.
     await waitFor(() => {
       expect(document.body).toHaveTextContent(message);
+    });
+  });
+
+  test('shows Open VC link when linkURL is provided', async () => {
+    const verifyUrl = 'https://example.com/verify/1';
+
+    render(<ToastMessage />);
+
+    act(() => {
+      toastMessage({ status: Status.success, message: 'Credential issued', linkURL: verifyUrl });
+    });
+
+    await waitFor(() => {
+      const link = document.body.querySelector('a[href="' + verifyUrl + '"]');
+      expect(link).toHaveTextContent('Open VC');
     });
   });
 });

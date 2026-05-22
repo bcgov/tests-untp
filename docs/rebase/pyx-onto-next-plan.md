@@ -121,7 +121,7 @@ pnpm test:components
 ## Next steps (attempt 2+)
 
 1. ~~On `rebase-attempt-1`, commit **Layer 1** (images only) → push → PR slice 1.~~ **Done** — assets under `packages/reference-implementation/public/bcmine/` (serve as `/bcmine/<file>.png`).
-2. Manually port **Layer 2** (ToastMessage PR) — validate tests.
+2. ~~Manually port **Layer 2** (ToastMessage PR) — validate tests.~~ **Done** — optional `linkURL` + “Open VC” link; story `WithVcLink`.
 3. Spike **Layer 3**: inspect RI Prisma seed / admin UI for how Truffle demo is configured today; map one pyx “app” as proof.
 4. Optional: `git rebase origin/next` from a **topic branch** that only contains layers 1–2 (never include root app-config.json).
 
