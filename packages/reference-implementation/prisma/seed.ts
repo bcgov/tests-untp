@@ -606,6 +606,14 @@ async function main() {
   // ── Run custom seed (deployer-provided data) ──────────────────────────────
   // Environment variables:
   //   SKIP_CUSTOM_SEED=true   - Skip custom seed (deployer-provided data from /app/seed/custom/)
+  const customSeedStorageService =
+    storageSeeded && storageRegistryEntry && storageConfig
+      ? storageRegistryEntry.factory(
+          storageConfig as Parameters<typeof storageRegistryEntry.factory>[0],
+          logger.child({ service: 'Storage - Custom Seed' }),
+        )
+      : null;
+
   if (process.env.SKIP_CUSTOM_SEED !== 'true') {
     const { runCustomSeed } = await import('./custom-seed');
 
@@ -614,13 +622,7 @@ async function main() {
       prisma,
       systemTenantId: SYSTEM_TENANT_ID,
       customSeedDir: '/app/seed/custom',
-      storageService:
-        storageSeeded && storageRegistryEntry && storageConfig
-          ? storageRegistryEntry.factory(
-              storageConfig as Parameters<typeof storageRegistryEntry.factory>[0],
-              logger.child({ service: 'Storage - Custom Seed' }),
-            )
-          : null,
+      storageService: customSeedStorageService,
       storageServiceInstanceId: SYSTEM_STORAGE_SERVICE_ID,
     });
   } else {
@@ -640,10 +642,38 @@ async function main() {
 
     if (bcmineDir) {
       const bcmineLogger = logger.child({ module: 'seed-bcmine' });
+
+      // When BCMINE_SEED_DIR points at examples/seed/bcmine (not /app/seed/custom), run its seed.yaml here.
+      const bcmineSeedYaml = path.join(bcmineDir, 'seed.yaml');
+      const defaultCustomDir = path.resolve('/app/seed/custom');
+      if (
+        process.env.SKIP_CUSTOM_SEED !== 'true' &&
+        fs.existsSync(bcmineSeedYaml) &&
+        path.resolve(bcmineDir) !== defaultCustomDir
+      ) {
+        const { runCustomSeed } = await import('./custom-seed.js');
+        await runCustomSeed({
+          logger: bcmineLogger.child({ module: 'custom-seed-bcmine' }),
+          prisma,
+          systemTenantId: SYSTEM_TENANT_ID,
+          customSeedDir: bcmineDir,
+          storageService: customSeedStorageService,
+          storageServiceInstanceId: SYSTEM_STORAGE_SERVICE_ID,
+        });
+      }
+
       const { runBcmineDataSeed } = await import('./seed-bcmine.js');
       await runBcmineDataSeed({
         prisma,
         logger: bcmineLogger,
+        tenantId: SYSTEM_TENANT_ID,
+        bcmineDir,
+      });
+
+      const { runBcmineEntitySeed } = await import('./seed-bcmine-entities.js');
+      await runBcmineEntitySeed({
+        prisma,
+        logger: bcmineLogger.child({ module: 'seed-bcmine-entities' }),
         tenantId: SYSTEM_TENANT_ID,
         bcmineDir,
       });

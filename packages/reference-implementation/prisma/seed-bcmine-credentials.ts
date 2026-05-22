@@ -48,16 +48,42 @@ function loadCredentialsManifest(bcmineDir: string): BcmineCredentialsFile | nul
 
 function setByPath(obj: Record<string, unknown>, dotPath: string, value: string): void {
   const parts = dotPath.split('.');
-  let current: Record<string, unknown> = obj;
+  let current: unknown = obj;
   for (let i = 0; i < parts.length - 1; i++) {
     const key = parts[i];
-    const next = current[key];
-    if (typeof next !== 'object' || next === null || Array.isArray(next)) {
-      current[key] = {};
+    const nextPart = parts[i + 1];
+    const nextIsIndex = /^\d+$/.test(nextPart);
+
+    if (Array.isArray(current)) {
+      const index = Number(key);
+      if (current[index] === undefined || typeof current[index] !== 'object' || current[index] === null) {
+        current[index] = nextIsIndex ? [] : {};
+      }
+      current = current[index];
+      continue;
     }
-    current = current[key] as Record<string, unknown>;
+
+    if (typeof current !== 'object' || current === null) {
+      return;
+    }
+    const record = current as Record<string, unknown>;
+    if (
+      !(key in record) ||
+      typeof record[key] !== 'object' ||
+      record[key] === null ||
+      (nextIsIndex && !Array.isArray(record[key]))
+    ) {
+      record[key] = nextIsIndex ? [] : {};
+    }
+    current = record[key];
   }
-  current[parts[parts.length - 1]] = value;
+
+  const last = parts[parts.length - 1];
+  if (Array.isArray(current)) {
+    current[Number(last)] = value;
+  } else if (typeof current === 'object' && current !== null) {
+    (current as Record<string, unknown>)[last] = value;
+  }
 }
 
 function applyOverrides(payload: Record<string, unknown>, overrides?: Record<string, string>): void {
@@ -80,11 +106,14 @@ function toCredentialPayload(raw: Record<string, unknown>): CredentialPayload {
   if (!credentialSubject || !issuer || !type || !context) {
     throw new Error('Template example-data is missing required VC fields');
   }
+  const subject = Array.isArray(credentialSubject)
+    ? (credentialSubject as CredentialPayload['credentialSubject'])
+    : (credentialSubject as CredentialPayload['credentialSubject']);
   return {
     '@context': context as CredentialPayload['@context'],
     type: type as CredentialPayload['type'],
     issuer: issuer as CredentialPayload['issuer'],
-    credentialSubject: credentialSubject as CredentialPayload['credentialSubject'],
+    credentialSubject: subject,
     ...(validUntil ? { validUntil: String(validUntil) } : {}),
     ...(renderMethod ? { renderMethod: renderMethod as CredentialPayload['renderMethod'] } : {}),
   };

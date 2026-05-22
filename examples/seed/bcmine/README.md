@@ -6,7 +6,8 @@ Ports the **BC Copper** demo from `pyx/MSPYX-826_bcmine_v0.6.0` onto `next` in t
 |-------|--------|-----------|
 | **3a** | `seed.yaml`, `render-templates/dpp-bcmine.hbs` | [custom seed](../../packages/reference-implementation/prisma/custom-seed.ts) |
 | **3b** | `actors.json` | [seed-bcmine.ts](../../packages/reference-implementation/prisma/seed-bcmine.ts) via main `seed.ts` |
-| **3b+** | `credentials.json` | [seed-bcmine-credentials.ts](../../packages/reference-implementation/prisma/seed-bcmine-credentials.ts) — signs via VCKit, stores via system storage |
+| **3c** | `entities.json` | [seed-bcmine-entities.ts](../../packages/reference-implementation/prisma/seed-bcmine-entities.ts) — facilities + products with GS1 IDs |
+| **3d** | `credentials.json` | [seed-bcmine-credentials.ts](../../packages/reference-implementation/prisma/seed-bcmine-credentials.ts) — signs via VCKit, stores via system storage |
 
 Static images live in `packages/reference-implementation/public/bcmine/` (branch `rebase-attempt-1`, Layer 1).
 
@@ -30,8 +31,10 @@ pnpm prisma db seed
 
 ### Custom seed (`seed.yaml`)
 
+- **GS1 registrars** (GTIN `01`, GLN `gln`) — required for `entities.json` identifiers
 - **Render template** `BC Copper DPP (BCMine)` for core DPP v0.6.1 (`dataModelId: c1pxfzzkeb86jgeel7hrvmcle`)
 - Template file is the pyx BCMine DPP `.hbs` (non-default; core UNTP template remains default)
+- When using `BCMINE_SEED_DIR` locally, `seed.yaml` is applied automatically (not only via `/app/seed/custom`)
 
 ### Data seed (`actors.json`)
 
@@ -39,9 +42,15 @@ pnpm prisma db seed
 - Six **OrganisationEntity** rows: Copper Mine, Copper Smelter, Battery Manufacturer, CopperMark, OrgBook, TSM
 - Idempotent by organisation `name`
 
+### Entity seed (`entities.json`)
+
+- **Facilities:** mine site + smelter (GS1 GLN values from pyx demo)
+- **Products:** copper concentrate + cathode batch (GS1 GTIN)
+- Idempotent by facility/product `name`
+
 ### Credential seed (`credentials.json`)
 
-- Three demo VCs from core v0.6.0 `example-data.json` templates with BCMine overrides (DPP for **Copper Mine**, DFR for **Copper Smelter**, DCC for **CopperMark**)
+- Four demo VCs from core v0.6.0 `example-data.json` templates with BCMine overrides (DPP, DFR, DCC, DTE)
 - Signed with the system VC adapter and stored like production issuance
 - `Credential` rows linked to the matching `OrganisationEntity` (idempotent per org + `credentialType`)
 - Verify in the RI UI with `uri` + `digestMultibase` from the credential record (or storage URI)
@@ -61,6 +70,7 @@ pnpm prisma db seed
 - IDR link registration for seeded identifiers — use RI APIs or extend seed later
 - Interactive multi-actor issuance UX (pyx `app-config` apps/features)
 
+Fork workflow: [docs/bcgov/bcmine-port-strategy.md](../../docs/bcgov/bcmine-port-strategy.md)  
 Full analysis: [docs/rebase/layer-3-bcmine-port-spike.md](../../docs/rebase/layer-3-bcmine-port-spike.md)
 
 ## Local dev without Docker

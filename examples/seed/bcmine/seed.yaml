@@ -1,8 +1,36 @@
 # BCMine custom seed — Layer 3a
 # Mount: ./examples/seed/bcmine:/app/seed/custom:ro
 #
-# Adds a non-default DPP render template (pyx BCMine styling) for the core
-# Digital Product Passport v0.6.1 data model seeded by prisma/seed.ts.
+# GS1 registrars (pyx demo uses GTIN + GLN paths) plus a non-default DPP render
+# template (BCMine styling) for core Digital Product Passport v0.6.1.
+
+registrars:
+  - id: "clgs1reg0000000000000000a"
+    name: "GS1"
+    namespace: "gs1"
+    url: "https://www.gs1.org"
+    identifierSchemes:
+      - id: "clgs1gln0000000000000000a"
+        name: "GS1 Global Location Number"
+        primaryKey: "gln"
+        validationPattern: "^\\d{13}$"
+        linkTemplate: "/{primaryKey}/{value}"
+      - id: "clgs1gtn0000000000000000a"
+        name: "GS1 Global Trade Item Number"
+        primaryKey: "01"
+        validationPattern: "^\\d{14}$"
+        linkTemplate: "/{primaryKey}/{value}"
+        qualifiers:
+          - id: "clgs1bat0000000000000000a"
+            key: "10"
+            description: "Batch/Lot Number"
+            validationPattern: "^[A-Za-z0-9]{1,20}$"
+            order: 0
+          - id: "clgs1ser0000000000000000a"
+            key: "21"
+            description: "Serial Number"
+            validationPattern: "^[A-Za-z0-9]{1,20}$"
+            order: 1
 
 renderTemplates:
   - id: "clbcmine00000000000000001"

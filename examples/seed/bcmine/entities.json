@@ -1,0 +1,42 @@
+{
+  "facilities": [
+    {
+      "key": "bcmine-mine-site",
+      "name": "BC Copper Mine Site",
+      "description": "Mine facility — BCMine demo (pyx Transformation Event bizLocation)",
+      "organisationName": "Copper Mine",
+      "schemePrimaryKey": "gln",
+      "identifierValue": "9359502000034"
+    },
+    {
+      "key": "bcmine-smelter-site",
+      "name": "BC Copper Smelter",
+      "description": "Smelting facility — BCMine demo",
+      "organisationName": "Copper Smelter",
+      "schemePrimaryKey": "gln",
+      "identifierValue": "1321202290648"
+    }
+  ],
+  "products": [
+    {
+      "key": "bcmine-copper-concentrate",
+      "name": "Copper Concentrate",
+      "description": "Mine output — BCMine demo (pyx outputEPCList)",
+      "level": "BATCH",
+      "organisationName": "Copper Mine",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09359502000034",
+      "batchNumber": "10001"
+    },
+    {
+      "key": "bcmine-cathode-batch",
+      "name": "Copper Cathode Plate",
+      "description": "Smelter output — BCMine demo",
+      "level": "BATCH",
+      "organisationName": "Copper Smelter",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09520123456788",
+      "batchNumber": "6789"
+    }
+  ]
+}
