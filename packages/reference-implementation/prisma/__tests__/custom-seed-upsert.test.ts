@@ -24,6 +24,7 @@ const IDS = {
 /** Builds a minimal valid manifest with no entries. */
 function emptyManifest(): CustomSeedManifest {
   return {
+    tenants: [],
     registrars: [],
     dataModels: [],
     renderTemplates: [],
@@ -36,11 +37,65 @@ describe('buildUpsertOperations — empty manifest', () => {
   it('returns all empty arrays when given an empty manifest', () => {
     const result = buildUpsertOperations(emptyManifest(), TENANT_ID);
 
+    expect(result.tenants).toEqual([]);
     expect(result.registrars).toEqual([]);
     expect(result.identifierSchemes).toEqual([]);
     expect(result.qualifiers).toEqual([]);
     expect(result.dataModels).toEqual([]);
     expect(result.renderTemplates).toEqual([]);
+  });
+});
+
+// ── Tenant mapping ────────────────────────────────────────────────────────────
+
+describe('buildUpsertOperations — tenant mapping', () => {
+  const manifest: CustomSeedManifest = {
+    ...emptyManifest(),
+    tenants: [
+      {
+        id: 'clbcmtn01000000000000000a',
+        name: 'Copper Mine',
+        externalIdpGroupId: '/copper-mine',
+        primaryColor: '#b5651d',
+        secondaryColor: '#391561',
+        logo: '/bc-logo.png',
+      },
+      {
+        id: 'clbcmtn02000000000000000a',
+        name: 'Minimal Tenant',
+        externalIdpGroupId: '/minimal',
+        primaryColor: null,
+        secondaryColor: null,
+        logo: null,
+      },
+    ],
+  };
+
+  it('maps tenants with all fields populated', () => {
+    const result = buildUpsertOperations(manifest, TENANT_ID);
+
+    expect(result.tenants).toHaveLength(2);
+    expect(result.tenants[0]).toEqual({
+      id: 'clbcmtn01000000000000000a',
+      name: 'Copper Mine',
+      externalIdpGroupId: '/copper-mine',
+      primaryColor: '#b5651d',
+      secondaryColor: '#391561',
+      logo: '/bc-logo.png',
+    });
+  });
+
+  it('maps tenants with null optional fields', () => {
+    const result = buildUpsertOperations(manifest, TENANT_ID);
+
+    expect(result.tenants[1]).toEqual({
+      id: 'clbcmtn02000000000000000a',
+      name: 'Minimal Tenant',
+      externalIdpGroupId: '/minimal',
+      primaryColor: null,
+      secondaryColor: null,
+      logo: null,
+    });
   });
 });
 

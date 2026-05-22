@@ -68,6 +68,7 @@ function buildRenderTemplate(
 /** Build a minimal valid manifest (no entities). */
 function emptyManifest(): CustomSeedManifest {
   return {
+    tenants: [],
     registrars: [],
     dataModels: [],
     renderTemplates: [],
@@ -87,6 +88,7 @@ describe('validateManifestReferences', () => {
 
     it('returns no errors for a fully populated valid manifest', () => {
       const manifest: CustomSeedManifest = {
+        tenants: [],
         registrars: [
           {
             id: ID_REGISTRAR,
