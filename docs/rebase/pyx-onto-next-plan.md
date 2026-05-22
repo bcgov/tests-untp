@@ -122,7 +122,7 @@ pnpm test:components
 
 1. ~~On `rebase-attempt-1`, commit **Layer 1** (images only) → push → PR slice 1.~~ **Done** — assets under `packages/reference-implementation/public/bcmine/` (serve as `/bcmine/<file>.png`).
 2. ~~Manually port **Layer 2** (ToastMessage PR) — validate tests.~~ **Done** — optional `linkURL` + “Open VC” link; story `WithVcLink`.
-3. ~~Spike **Layer 3**~~ **Done** — see [layer-3-bcmine-port-spike.md](./layer-3-bcmine-port-spike.md) and `examples/seed/bcmine/` stub. BCMine `apps[]` UI cannot port via seed alone; use Phase 3a (custom seed) + 3b (API import) + product decision on interactive demo.
+3. ~~Spike + Phase 3a/3b~~ **Done** — see [layer-3-bcmine-port-spike.md](./layer-3-bcmine-port-spike.md), `examples/seed/bcmine/`, `prisma/seed-bcmine.ts`. Interactive `apps[]` UI still requires pyx branch or new RI work (Phase 3c).
 4. Optional: `git rebase origin/next` from a **topic branch** that only contains layers 1–2 (never include root app-config.json).
 
 ---

@@ -1,47 +1,64 @@
-# BCMine custom seed (planned)
+# BCMine custom seed (pyx → `next`)
 
-Port target for **Layer 3a** of the pyx → `next` integration ([spike doc](../../docs/rebase/layer-3-bcmine-port-spike.md)).
+Ports the **BC Copper** demo from `pyx/MSPYX-826_bcmine_v0.6.0` onto `next` in two layers:
 
-## Purpose
+| Layer | Files | Loaded by |
+|-------|--------|-----------|
+| **3a** | `seed.yaml`, `render-templates/dpp-bcmine.hbs` | [custom seed](../../packages/reference-implementation/prisma/custom-seed.ts) |
+| **3b** | `actors.json` | [seed-bcmine.ts](../../packages/reference-implementation/prisma/seed-bcmine.ts) via main `seed.ts` |
 
-Use the **custom seed** hook (`/app/seed/custom/seed.yaml`) to add BCMine-specific:
+Static images live in `packages/reference-implementation/public/bcmine/` (branch `rebase-attempt-1`, Layer 1).
 
-- Render template overrides (BC branding, `/bcmine/*` images from Layer 1)
-- Optional registrar / identifier scheme tweaks for the copper supply-chain demo
+## Docker
 
-This does **not** replace the old `app-config.json` multi-app UI (removed on `next` in [#458](https://github.com/bcgov/tests-untp/pull/458)).
-
-## Mount (local Docker)
+Mount this directory as the custom seed root (includes both YAML and JSON):
 
 ```yaml
-# docker-compose override
 volumes:
   - ./examples/seed/bcmine:/app/seed/custom:ro
 ```
 
-## Parent data models (from built-in seed)
-
-When adding `dataModels` extensions or `renderTemplates`, reference existing core IDs from `packages/reference-implementation/prisma/seed.ts`, for example:
-
-| Credential | Version | `dataModelId` (core) |
-|------------|---------|----------------------|
-| Digital Product Passport | 0.6.1 | `c1pxfzzkeb86jgeel7hrvmcle` |
-| Digital Traceability Event | 0.6.1 | `cwb7m3k0hpz9xqft6rjn2oe4s` |
-| Digital Facility Record | 0.6.1 | `csrtste8ai2llop7ui8u6n11l` |
-| Digital Identity Anchor | 0.6.1 | `cn5u63huxvqgdwppebaxmqt9l` |
-| Digital Conformity Credential | 0.6.1 | `cttpz40pfgcfeue2wmbc3jti8` |
-
-Generate new CUIDs for BCMine-owned extension rows and templates (`npx @paralleldrive/cuid2` or project convention).
-
-## Status
-
-- `seed.yaml` — stub only; implement in a follow-up PR after Phase 3b data-import design.
-- Static assets — served from `packages/reference-implementation/public/bcmine/` on branch `rebase-attempt-1`.
-
-## pyx source
-
-Extract credential payloads and actor names from:
+Then restart / re-run seed:
 
 ```bash
-git show origin/pyx/MSPYX-826_bcmine_v0.6.0:app-config.json
+cd packages/reference-implementation
+pnpm prisma db seed
 ```
+
+## What gets created
+
+### Custom seed (`seed.yaml`)
+
+- **Render template** `BC Copper DPP (BCMine)` for core DPP v0.6.1 (`dataModelId: c1pxfzzkeb86jgeel7hrvmcle`)
+- Template file is the pyx BCMine DPP `.hbs` (non-default; core UNTP template remains default)
+
+### Data seed (`actors.json`)
+
+- System **tenant** colours from pyx chain `styles`
+- Six **OrganisationEntity** rows: Copper Mine, Copper Smelter, Battery Manufacturer, CopperMark, OrgBook, TSM
+- Idempotent by organisation `name`
+
+## Environment
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `SKIP_CUSTOM_SEED` | unset | When `true`, skips YAML custom seed only |
+| `SKIP_BCMINE_SEED` | unset | When `true`, skips `actors.json` organisation seed |
+| `BCMINE_SEED_DIR` | auto | Override directory containing `actors.json` |
+
+## Not included (see spike doc)
+
+- Old `app-config.json` **apps / features / JsonForm** issuance flows — removed on `next` ([#458](https://github.com/bcgov/tests-untp/pull/458))
+- Pre-issued credential payloads and IDR links — future import script / API batch
+
+Full analysis: [docs/rebase/layer-3-bcmine-port-spike.md](../../docs/rebase/layer-3-bcmine-port-spike.md)
+
+## Local dev without Docker
+
+From repo root, after main seed prerequisites (`SERVICE_ENCRYPTION_KEY`, Postgres, etc.):
+
+```bash
+BCMINE_SEED_DIR="$(pwd)/examples/seed/bcmine" pnpm --filter untp-reference-implementation exec prisma db seed
+```
+
+Custom seed also runs when `examples/seed/bcmine/seed.yaml` is found via the same mount path logic.

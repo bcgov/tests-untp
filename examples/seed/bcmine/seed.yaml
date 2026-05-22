@@ -1,12 +1,14 @@
-# BCMine custom seed manifest (stub)
+# BCMine custom seed — Layer 3a
+# Mount: ./examples/seed/bcmine:/app/seed/custom:ro
 #
-# See README.md and docs/rebase/layer-3-bcmine-port-spike.md before filling this in.
-# Empty top-level keys are valid; custom-seed skips when only comments exist.
-#
-# Planned sections:
-#   renderTemplates: BCMine-branded .hbs under render-templates/
-#   registrars:      only if copper demo needs schemes beyond system seed
-#
-# registrars: []
-# dataModels: []
-# renderTemplates: []
+# Adds a non-default DPP render template (pyx BCMine styling) for the core
+# Digital Product Passport v0.6.1 data model seeded by prisma/seed.ts.
+
+renderTemplates:
+  - id: "clbcmine00000000000000001"
+    name: "BC Copper DPP (BCMine)"
+    file: "render-templates/dpp-bcmine.hbs"
+    dataModelId: "c1pxfzzkeb86jgeel7hrvmcle"
+    isDefault: false
+    renderMethodType: "RenderTemplate2024"
+    mediaType: "text/html"

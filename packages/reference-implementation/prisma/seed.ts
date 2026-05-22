@@ -624,6 +624,28 @@ async function main() {
     logger.info('Skipping custom seed (SKIP_CUSTOM_SEED is set)');
   }
 
+  // ── BCMine demo data (organisations + tenant colours) ─────────────────────
+  // When examples/seed/bcmine is mounted at /app/seed/custom, actors.json is picked up
+  // automatically. Override dir with BCMINE_SEED_DIR. Set SKIP_BCMINE_SEED=true to skip.
+  if (process.env.SKIP_BCMINE_SEED !== 'true') {
+    const bcmineCandidates = [
+      process.env.BCMINE_SEED_DIR?.trim(),
+      '/app/seed/custom',
+      path.resolve(__dirname, '../../../examples/seed/bcmine'),
+    ].filter((p): p is string => Boolean(p));
+    const bcmineDir = bcmineCandidates.find((dir) => fs.existsSync(path.join(dir, 'actors.json')));
+
+    if (bcmineDir) {
+      const { runBcmineDataSeed } = await import('./seed-bcmine.js');
+      await runBcmineDataSeed({
+        prisma,
+        logger: logger.child({ module: 'seed-bcmine' }),
+        tenantId: SYSTEM_TENANT_ID,
+        bcmineDir,
+      });
+    }
+  }
+
   // ── Register identifier schemes with IDR service ────────────────────────────
   // In the dev environment, the RI operates the Pyx IDR — register seeded schemes.
   if (idrSeeded && idrAdapterType === 'PYX_IDR') {
@@ -718,6 +740,7 @@ async function main() {
       ', data models' +
       (templatesSeeded ? ', render templates' : '') +
       ', custom seed' +
+      (process.env.SKIP_BCMINE_SEED !== 'true' ? ', BCMine actors' : '') +
       (idrSeeded ? ', IDR service instance' : '') +
       (storageSeeded ? ', storage service instance' : '') +
       (vcSeeded ? ', VC service instance' : '') +

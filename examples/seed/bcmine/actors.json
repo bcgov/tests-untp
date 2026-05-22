@@ -1,0 +1,52 @@
+{
+  "chainName": "British Columbia Copper Supply Chain",
+  "styles": {
+    "primaryColor": "rgb(35, 138, 186)",
+    "secondaryColor": "black",
+    "tertiaryColor": "black"
+  },
+  "actors": [
+    {
+      "name": "Copper Mine",
+      "type": "producer",
+      "primaryColor": "#b5651d",
+      "logo": "/bcmine/bc-logo.png",
+      "brandTitle": "Mine Facility"
+    },
+    {
+      "name": "Copper Smelter",
+      "type": "producer",
+      "primaryColor": "#b5651d",
+      "logo": "/bcmine/smelter01.png",
+      "brandTitle": "Smelter Facility"
+    },
+    {
+      "name": "Battery Manufacturer",
+      "type": "producer",
+      "primaryColor": "#b5651d",
+      "logo": "/bcmine/cathode01.png",
+      "brandTitle": "Battery Facility"
+    },
+    {
+      "name": "CopperMark",
+      "type": "certifier",
+      "primaryColor": "#b5651d",
+      "logo": "/bcmine/coppermark-logo.png",
+      "brandTitle": "CopperMark"
+    },
+    {
+      "name": "OrgBook",
+      "type": "certifier",
+      "primaryColor": "#b5651d",
+      "logo": "/bcmine/bc-logo.png",
+      "brandTitle": "OrgBook"
+    },
+    {
+      "name": "TSM",
+      "type": "certifier",
+      "primaryColor": "#b5651d",
+      "logo": "/bcmine/tsm-logo.png",
+      "brandTitle": "TSM"
+    }
+  ]
+}

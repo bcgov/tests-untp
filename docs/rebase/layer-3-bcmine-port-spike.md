@@ -166,13 +166,13 @@ Layer 3 **must not** `git merge` pyx. Use **extract → map → seed/API**.
 
 ---
 
-## Suggested next commit (Layer 3a proof)
+## Implementation status (on `rebase-attempt-1`)
 
-On `rebase-attempt-1`:
-
-1. Add `examples/seed/bcmine/README.md` + stub `seed.yaml`.
-2. Optionally add one BCMine `render-templates/dpp-bcmine.hbs` if visual diff vs core template is required.
-3. Document Docker volume mount in README.
+| Phase | Status |
+|-------|--------|
+| **3a** | `examples/seed/bcmine/seed.yaml` + `render-templates/dpp-bcmine.hbs` |
+| **3b** | `actors.json` + `prisma/seed-bcmine.ts` (hooked from `seed.ts`) |
+| **3c** | Not implemented — interactive app-config UI still requires pyx branch or new RI work |
 
 **Do not** add root `app-config.json` to the branch.
 
