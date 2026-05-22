@@ -128,6 +128,25 @@ export const customSeedRenderTemplateSchema = z.object({
 
 export type CustomSeedRenderTemplate = z.infer<typeof customSeedRenderTemplateSchema>;
 
+// ── Tenant schema ─────────────────────────────────────────────────────────────
+
+export const customSeedTenantSchema = z.object({
+  /** CUID v1 primary key. */
+  id: z.string().cuid(),
+  /** Human-readable display name, e.g. "Copper Mine". */
+  name: z.string(),
+  /** Keycloak group path, e.g. "/copper-mine". */
+  externalIdpGroupId: z.string(),
+  /** Primary brand color (hex). */
+  primaryColor: z.string().nullish(),
+  /** Secondary brand color (hex). */
+  secondaryColor: z.string().nullish(),
+  /** Relative path or URL to tenant logo image. */
+  logo: z.string().nullish(),
+});
+
+export type CustomSeedTenant = z.infer<typeof customSeedTenantSchema>;
+
 // ── Root manifest schema ──────────────────────────────────────────────────────
 
 /**
@@ -137,6 +156,12 @@ export type CustomSeedRenderTemplate = z.infer<typeof customSeedRenderTemplateSc
  * (or minimal) manifest is always valid.
  */
 export const customSeedSchema = z.object({
+  /** Tenants to pre-provision with branding. */
+  tenants: customSeedTenantSchema
+    .array()
+    .nullish()
+    .transform((v) => v ?? []),
+
   /** Registrars to upsert, each optionally containing identifier schemes and qualifiers. */
   registrars: customSeedRegistrarSchema
     .array()

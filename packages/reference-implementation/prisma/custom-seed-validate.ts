@@ -36,6 +36,10 @@ function collectDuplicateIds(manifest: CustomSeedManifest): Set<string> {
     }
   };
 
+  for (const tenant of manifest.tenants) {
+    check(tenant.id);
+  }
+
   for (const registrar of manifest.registrars) {
     check(registrar.id);
     for (const scheme of registrar.identifierSchemes) {
@@ -74,6 +78,16 @@ export function validateManifestReferences(manifest: CustomSeedManifest, ctx: Va
   const duplicates = collectDuplicateIds(manifest);
   for (const id of duplicates) {
     errors.push(`Duplicate ID detected across manifest entities: "${id}"`);
+  }
+
+  // ── 1b. Duplicate externalIdpGroupId within tenants ─────────────────────────
+  const seenGroupIds = new Set<string>();
+  for (const tenant of manifest.tenants) {
+    if (seenGroupIds.has(tenant.externalIdpGroupId)) {
+      errors.push(`Duplicate externalIdpGroupId "${tenant.externalIdpGroupId}" in tenants array`);
+    } else {
+      seenGroupIds.add(tenant.externalIdpGroupId);
+    }
   }
 
   // Build a set of data model IDs declared in this manifest for forward-ref checks.

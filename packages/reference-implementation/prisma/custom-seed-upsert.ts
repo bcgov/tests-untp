@@ -1,5 +1,14 @@
 import type { CustomSeedManifest } from './custom-seed-schema.js';
 
+export interface TenantUpsert {
+  id: string;
+  name: string;
+  externalIdpGroupId: string;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  logo?: string | null;
+}
+
 export interface RegistrarUpsert {
   id: string;
   tenantId: string;
@@ -55,6 +64,7 @@ export interface RenderTemplateUpsert {
 }
 
 export interface UpsertOperations {
+  tenants: TenantUpsert[];
   registrars: RegistrarUpsert[];
   identifierSchemes: IdentifierSchemeUpsert[];
   qualifiers: QualifierUpsert[];
@@ -69,6 +79,15 @@ export interface UpsertOperations {
  * No side effects — no DB calls, no file I/O.
  */
 export function buildUpsertOperations(manifest: CustomSeedManifest, systemTenantId: string): UpsertOperations {
+  const tenants: TenantUpsert[] = manifest.tenants.map((t) => ({
+    id: t.id,
+    name: t.name,
+    externalIdpGroupId: t.externalIdpGroupId,
+    primaryColor: t.primaryColor ?? null,
+    secondaryColor: t.secondaryColor ?? null,
+    logo: t.logo ?? null,
+  }));
+
   const registrars: RegistrarUpsert[] = [];
   const identifierSchemes: IdentifierSchemeUpsert[] = [];
   const qualifiers: QualifierUpsert[] = [];
@@ -134,6 +153,7 @@ export function buildUpsertOperations(manifest: CustomSeedManifest, systemTenant
   }));
 
   return {
+    tenants,
     registrars,
     identifierSchemes,
     qualifiers,

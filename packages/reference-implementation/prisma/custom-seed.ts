@@ -42,7 +42,8 @@ export interface CustomSeedDependencies {
  * Count total entities in a parsed manifest.
  */
 function countEntities(manifest: CustomSeedManifest): number {
-  let count = manifest.registrars.length + manifest.dataModels.length + manifest.renderTemplates.length;
+  let count =
+    manifest.tenants.length + manifest.registrars.length + manifest.dataModels.length + manifest.renderTemplates.length;
 
   for (const registrar of manifest.registrars) {
     count += registrar.identifierSchemes.length;
@@ -118,6 +119,7 @@ export async function runCustomSeed(deps: CustomSeedDependencies): Promise<void>
 
   // Collect all IDs from the manifest for batch collision detection.
   const allManifestIds: string[] = [];
+  for (const tenant of manifest.tenants) allManifestIds.push(tenant.id);
   for (const registrar of manifest.registrars) {
     allManifestIds.push(registrar.id);
     for (const scheme of registrar.identifierSchemes) {
@@ -251,6 +253,29 @@ export async function runCustomSeed(deps: CustomSeedDependencies): Promise<void>
   // ── 8. Atomic DB transaction ───────────────────────────────────────────
   await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
+      // Upsert tenants — use externalIdpGroupId as the match key since it has
+      // a unique constraint and a tenant may have been auto-provisioned on login
+      // with a different ID.
+      for (const tenant of ops.tenants) {
+        await tx.tenant.upsert({
+          where: { externalIdpGroupId: tenant.externalIdpGroupId },
+          update: {
+            name: tenant.name,
+            primaryColor: tenant.primaryColor,
+            secondaryColor: tenant.secondaryColor,
+            logo: tenant.logo,
+          },
+          create: {
+            id: tenant.id,
+            name: tenant.name,
+            externalIdpGroupId: tenant.externalIdpGroupId,
+            primaryColor: tenant.primaryColor,
+            secondaryColor: tenant.secondaryColor,
+            logo: tenant.logo,
+          },
+        });
+      }
+
       // Upsert registrars
       for (const registrar of ops.registrars) {
         await tx.registrar.upsert({
@@ -391,6 +416,7 @@ export async function runCustomSeed(deps: CustomSeedDependencies): Promise<void>
 
   // ── 9. Log success summary ────────────────────────────────────────────
   const summary = {
+    tenants: ops.tenants.length,
     registrars: ops.registrars.length,
     identifierSchemes: ops.identifierSchemes.length,
     qualifiers: ops.qualifiers.length,
