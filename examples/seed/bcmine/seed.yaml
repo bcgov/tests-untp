@@ -1,0 +1,12 @@
+# BCMine custom seed manifest (stub)
+#
+# See README.md and docs/rebase/layer-3-bcmine-port-spike.md before filling this in.
+# Empty top-level keys are valid; custom-seed skips when only comments exist.
+#
+# Planned sections:
+#   renderTemplates: BCMine-branded .hbs under render-templates/
+#   registrars:      only if copper demo needs schemes beyond system seed
+#
+# registrars: []
+# dataModels: []
+# renderTemplates: []
