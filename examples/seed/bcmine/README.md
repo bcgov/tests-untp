@@ -35,7 +35,7 @@ pnpm prisma db seed
 ### `actors.json`
 
 - Tenant chain colours
-- Six organisations with **`logo`** and **`primaryColor`** on `OrganisationEntity` (re-applied on re-seed)
+- Six organisations with **`logo`**, **`primaryColor`**, and optional **ABN** `primaryIdentifier` on `OrganisationEntity`
 
 ### `entities.json`
 
@@ -64,11 +64,11 @@ Maps pyx issuance features to seeded credentials (idempotent via `Credential.see
 | `bcmine-orgbook-mine-dia` | DIA | OrgBook |
 | `bcmine-tsm-mine-dcc` | DCC | TSM |
 
-Requires VC + storage env (same as main seed).
+Requires VC + storage env (same as main seed). Credentials default to **`isPublished: true`** and link **`productId` / `facilityId`** when `productName` / `facilityName` are set. Re-seed backfills FKs on existing `seedKey` rows.
 
 ### `links.json`
 
-Publishes Pyx IDR links for GTIN/GLN identifiers → RI **`/verify?uri=…&digestMultibase=…`** URLs.
+Publishes **15** Pyx IDR links (GTIN/GLN + ABN) → RI **`/verify?uri=…&digestMultibase=…`** URLs.
 
 ### `identifier-carriers.json`
 
@@ -85,7 +85,7 @@ Documents pyx barcode/manual-entry scheme hints (GTIN, NLIS, ABN) for future UI 
 |----------|--------|
 | `SKIP_BCMINE_SEED` | Skip all BCMine seed modules |
 | `BCMINE_SEED_DIR` | Directory with `actors.json` |
-| `RI_PUBLIC_BASE_URL` | Base URL for IDR link targets (default `http://localhost:3003`) |
+| `RI_PUBLIC_BASE_URL` / `RI_APP_URL` | Base URL for IDR link targets (default `http://localhost:3003`) |
 | `SERVICE_ENCRYPTION_KEY`, `SYSTEM_VC_*`, `SYSTEM_STORAGE_*`, `SYSTEM_IDR_*` | Required for credentials + links |
 
 ## Not included

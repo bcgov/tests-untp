@@ -20,6 +20,9 @@ export type BcmineCredentialManifestEntry = {
   version: string;
   template: string;
   organisationName: string;
+  productName?: string;
+  facilityName?: string;
+  isPublished?: boolean;
   overrides?: Record<string, string>;
 };
 
@@ -34,8 +37,15 @@ export type BcmineCredentialSeedDependencies = {
   bcmineDir: string;
   vcService: IVerifiableCredentialService;
   storageService: IStorageService;
-  /** When set, overwrites template issuer.id so VCKit signing matches the seeded system DID. */
   issuerDid?: string;
+};
+
+type EntityBinding = {
+  productId?: string;
+  facilityId?: string;
+  productRegisteredId?: string;
+  productBatchNumber?: string;
+  facilityRegisteredId?: string;
 };
 
 function loadCredentialsManifest(bcmineDir: string): BcmineCredentialsFile | null {
@@ -132,9 +142,67 @@ function extractRefs(
   return bridge.extractRefs(subject);
 }
 
+async function resolveEntityBinding(
+  prisma: PrismaClient,
+  tenantId: string,
+  entry: BcmineCredentialManifestEntry,
+): Promise<EntityBinding> {
+  const binding: EntityBinding = {};
+
+  if (entry.productName) {
+    const product = await prisma.product.findFirst({
+      where: { tenantId, name: entry.productName },
+      include: { primaryIdentifier: true },
+    });
+    if (product) {
+      binding.productId = product.id;
+      binding.productRegisteredId = product.primaryIdentifier?.value;
+      binding.productBatchNumber = product.batchNumber ?? undefined;
+    }
+  }
+
+  if (entry.facilityName) {
+    const facility = await prisma.facility.findFirst({
+      where: { tenantId, name: entry.facilityName },
+      include: { primaryIdentifier: true },
+    });
+    if (facility) {
+      binding.facilityId = facility.id;
+      binding.facilityRegisteredId = facility.primaryIdentifier?.value;
+    }
+  }
+
+  return binding;
+}
+
+function applyEntityOverrides(
+  entry: BcmineCredentialManifestEntry,
+  raw: Record<string, unknown>,
+  binding: EntityBinding,
+): void {
+  const extra: Record<string, string> = { ...entry.overrides };
+
+  if (binding.productRegisteredId) {
+    if (entry.credentialType === 'DigitalProductPassport') {
+      extra['credentialSubject.product.registeredId'] = binding.productRegisteredId;
+      if (binding.productBatchNumber) {
+        extra['credentialSubject.product.batchNumber'] = binding.productBatchNumber;
+      }
+    }
+    if (entry.credentialType === 'DigitalTraceabilityEvent') {
+      extra['credentialSubject.0.outputEPCList.0.registeredId'] = binding.productRegisteredId;
+    }
+  }
+
+  if (binding.facilityRegisteredId && entry.credentialType === 'DigitalFacilityRecord') {
+    extra['credentialSubject.facility.registeredId'] = binding.facilityRegisteredId;
+  }
+
+  applyOverrides(raw, extra);
+}
+
 /**
- * Layer 3b+: issue sample BCMine credentials (DPP, DFR, DCC) from core templates + overrides.
- * Requires VC and storage adapters (same as main seed). Idempotent per organisation + credentialType.
+ * Issue BCMine credentials from templates; binds product/facility FKs and aligned registeredIds.
  */
 export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependencies): Promise<void> {
   const { prisma, logger, tenantId, bcmineDir, vcService, storageService, issuerDid } = deps;
@@ -146,6 +214,7 @@ export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependen
 
   let issued = 0;
   let skipped = 0;
+  let backfilled = 0;
   let failed = 0;
 
   for (const entry of manifest.credentials) {
@@ -162,17 +231,29 @@ export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependen
         continue;
       }
 
+      const binding = await resolveEntityBinding(prisma, tenantId, entry);
+      const isPublished = entry.isPublished !== false;
+
       const existing = await prisma.credential.findFirst({
         where: { tenantId, seedKey: entry.key },
       });
       if (existing) {
+        await prisma.credential.update({
+          where: { id: existing.id },
+          data: {
+            productId: binding.productId,
+            facilityId: binding.facilityId,
+            isPublished,
+          },
+        });
         skipped++;
+        backfilled++;
         continue;
       }
 
       const raw = loadTemplatePayload(entry);
       raw.id = `urn:bcmine:seed:${entry.key}`;
-      applyOverrides(raw, entry.overrides);
+      applyEntityOverrides(entry, raw, binding);
       if (issuerDid && typeof raw.issuer === 'object' && raw.issuer !== null) {
         (raw.issuer as Record<string, unknown>).id = issuerDid;
       }
@@ -198,8 +279,10 @@ export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependen
           digestMultibase: storageRecord.digestMultibase,
           decryptionKey: storageRecord.decryptionKey,
           credentialType: entry.credentialType,
-          isPublished: false,
+          isPublished,
           organisationId: organisation.id,
+          productId: binding.productId,
+          facilityId: binding.facilityId,
         },
       });
       issued++;
@@ -208,8 +291,8 @@ export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependen
         {
           key: entry.key,
           credentialType: entry.credentialType,
-          organisationName: entry.organisationName,
-          storageUri: storageRecord.uri,
+          productId: binding.productId,
+          facilityId: binding.facilityId,
           refs,
         },
         'BCMine seed credential issued',
@@ -227,7 +310,7 @@ export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependen
   }
 
   logger.info(
-    { tenantId, issued, skipped, failed, total: manifest.credentials.length },
+    { tenantId, issued, skipped, backfilled, failed, total: manifest.credentials.length },
     'BCMine credential seed complete',
   );
 }

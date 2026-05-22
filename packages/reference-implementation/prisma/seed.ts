@@ -816,7 +816,10 @@ async function main() {
       tenantId: SYSTEM_TENANT_ID,
       bcmineDir: bcmineSeedDir,
       idrService: idrAdapter,
-      publicBaseUrl: process.env.RI_PUBLIC_BASE_URL?.trim() || 'http://localhost:3003',
+      publicBaseUrl:
+        process.env.RI_PUBLIC_BASE_URL?.trim() ||
+        process.env.RI_APP_URL?.trim() ||
+        'http://localhost:3003',
     });
   }
 

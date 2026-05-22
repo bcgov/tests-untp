@@ -1,7 +1,17 @@
 {
   "links": [
     {
-      "key": "link-concentrate-dpp",
+      "key": "link-mine-dte",
+      "credentialSeedKey": "bcmine-mine-dte",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09359502000034",
+      "qualifierPath": "/21/10001",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dte",
+      "title": "Ore Mined (DTE)"
+    },
+    {
+      "key": "link-mine-dpp",
       "credentialSeedKey": "bcmine-mine-dpp",
       "namespace": "gs1",
       "schemePrimaryKey": "01",
@@ -11,7 +21,7 @@
       "title": "Copper Concentrate DPP"
     },
     {
-      "key": "link-mine-gln-dfr",
+      "key": "link-mine-dfr",
       "credentialSeedKey": "bcmine-mine-dfr",
       "namespace": "gs1",
       "schemePrimaryKey": "gln",
@@ -20,7 +30,37 @@
       "title": "BC Copper Mine DFR"
     },
     {
-      "key": "link-smelter-gln-dfr",
+      "key": "link-mine-move-dte",
+      "credentialSeedKey": "bcmine-mine-move-dte",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09359502000034",
+      "qualifierPath": "/21/10001",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dte",
+      "title": "Transport to Smelter (DTE)"
+    },
+    {
+      "key": "link-smelter-transform-dte",
+      "credentialSeedKey": "bcmine-smelter-transform-dte",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09520123456788",
+      "qualifierPath": "/21/6789",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dte",
+      "title": "Smelt Concentrate (DTE)"
+    },
+    {
+      "key": "link-smelter-dpp",
+      "credentialSeedKey": "bcmine-smelter-dpp",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09520123456788",
+      "qualifierPath": "/21/6789",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dpp",
+      "title": "Copper Cathode DPP"
+    },
+    {
+      "key": "link-smelter-dfr",
       "credentialSeedKey": "bcmine-smelter-dfr",
       "namespace": "gs1",
       "schemePrimaryKey": "gln",
@@ -29,14 +69,24 @@
       "title": "BC Copper Smelter DFR"
     },
     {
-      "key": "link-cathode-dpp",
-      "credentialSeedKey": "bcmine-smelter-dpp",
+      "key": "link-smelter-move-dte",
+      "credentialSeedKey": "bcmine-smelter-move-dte",
       "namespace": "gs1",
       "schemePrimaryKey": "01",
       "identifierValue": "09520123456788",
       "qualifierPath": "/21/6789",
-      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dpp",
-      "title": "Copper Cathode DPP"
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dte",
+      "title": "Transport to Battery Mfr (DTE)"
+    },
+    {
+      "key": "link-battery-transform-dte",
+      "credentialSeedKey": "bcmine-battery-transform-dte",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09520123456701",
+      "qualifierPath": "/21/9001",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dte",
+      "title": "Assemble EV Battery (DTE)"
     },
     {
       "key": "link-battery-dpp",
@@ -47,6 +97,51 @@
       "qualifierPath": "/21/9001",
       "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dpp",
       "title": "EV Battery DPP"
+    },
+    {
+      "key": "link-coppermark-mine-dcc",
+      "credentialSeedKey": "bcmine-coppermark-mine-dcc",
+      "namespace": "abr",
+      "schemePrimaryKey": "abn",
+      "identifierValue": "12345678901",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dcc",
+      "title": "CopperMark Mine DCC"
+    },
+    {
+      "key": "link-coppermark-smelter-dcc",
+      "credentialSeedKey": "bcmine-coppermark-smelter-dcc",
+      "namespace": "abr",
+      "schemePrimaryKey": "abn",
+      "identifierValue": "12345678902",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dcc",
+      "title": "CopperMark Smelter DCC"
+    },
+    {
+      "key": "link-orgbook-mine-dcc",
+      "credentialSeedKey": "bcmine-orgbook-mine-dcc",
+      "namespace": "abr",
+      "schemePrimaryKey": "abn",
+      "identifierValue": "12345678901",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dcc",
+      "title": "OrgBook Mine DCC"
+    },
+    {
+      "key": "link-orgbook-mine-dia",
+      "credentialSeedKey": "bcmine-orgbook-mine-dia",
+      "namespace": "abr",
+      "schemePrimaryKey": "abn",
+      "identifierValue": "12345678901",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dia",
+      "title": "OrgBook Mine DIA"
+    },
+    {
+      "key": "link-tsm-mine-dcc",
+      "credentialSeedKey": "bcmine-tsm-mine-dcc",
+      "namespace": "abr",
+      "schemePrimaryKey": "abn",
+      "identifierValue": "12345678901",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dcc",
+      "title": "TSM Mine DCC"
     }
   ]
 }

@@ -11,42 +11,48 @@
       "type": "producer",
       "primaryColor": "#b5651d",
       "logo": "/bcmine/bc-logo.png",
-      "brandTitle": "Mine Facility"
+      "brandTitle": "Mine Facility",
+      "primaryIdentifier": { "registrarNamespace": "abr", "schemePrimaryKey": "abn", "value": "12345678901" }
     },
     {
       "name": "Copper Smelter",
       "type": "producer",
       "primaryColor": "#b5651d",
       "logo": "/bcmine/smelter01.png",
-      "brandTitle": "Smelter Facility"
+      "brandTitle": "Smelter Facility",
+      "primaryIdentifier": { "registrarNamespace": "abr", "schemePrimaryKey": "abn", "value": "12345678902" }
     },
     {
       "name": "Battery Manufacturer",
       "type": "producer",
       "primaryColor": "#b5651d",
       "logo": "/bcmine/cathode01.png",
-      "brandTitle": "Battery Facility"
+      "brandTitle": "Battery Facility",
+      "primaryIdentifier": { "registrarNamespace": "abr", "schemePrimaryKey": "abn", "value": "12345678903" }
     },
     {
       "name": "CopperMark",
       "type": "certifier",
       "primaryColor": "#b5651d",
       "logo": "/bcmine/coppermark-logo.png",
-      "brandTitle": "CopperMark"
+      "brandTitle": "CopperMark",
+      "primaryIdentifier": { "registrarNamespace": "abr", "schemePrimaryKey": "abn", "value": "12345678904" }
     },
     {
       "name": "OrgBook",
       "type": "certifier",
       "primaryColor": "#b5651d",
       "logo": "/bcmine/bc-logo.png",
-      "brandTitle": "OrgBook"
+      "brandTitle": "OrgBook",
+      "primaryIdentifier": { "registrarNamespace": "abr", "schemePrimaryKey": "abn", "value": "12345678905" }
     },
     {
       "name": "TSM",
       "type": "certifier",
       "primaryColor": "#b5651d",
       "logo": "/bcmine/tsm-logo.png",
-      "brandTitle": "TSM"
+      "brandTitle": "TSM",
+      "primaryIdentifier": { "registrarNamespace": "abr", "schemePrimaryKey": "abn", "value": "12345678906" }
     }
   ]
 }

@@ -10,63 +10,64 @@
 | Touch shared files minimally (`seed.ts` hooks, `ToastMessage` only where `next` still has the file) | Revive deleted paths (`app-config.json`, `mock-app/`, `BarcodeGenerator`, …) |
 | Keep BCMine in **small, ordered commits** on one integration branch | Edit upstream-owned templates unless BCMine-specific copy lives in custom seed |
 
-A clean port branch should show **only additive paths + tiny hooks** in `git diff upstream/next...HEAD`.
-
 ## Remotes and branches
 
 ```bash
 git remote add upstream https://github.com/uncefact/tests-untp.git   # once
 git fetch upstream
+git checkout next && git merge upstream/next    # mirror upstream
+git checkout bcmine-next && git rebase next     # replay port commits
 ```
 
 | Branch | Purpose |
 |--------|---------|
 | **`upstream/next`** | Track uncefact (read-only) |
-| **`origin/next`** | bcgov mirror of upstream + optional fast-forward |
-| **`origin/bcmine-next`** | **BCMine port integration** — merge target for port PRs |
-| **`pyx/…`** | Archive only — do not merge into bcmine-next |
-
-### Pull upstream updates
-
-```bash
-git fetch upstream
-git checkout next
-git merge upstream/next          # update bcgov mirror
-git checkout bcmine-next
-git rebase next                  # replay BCMine commits; fix conflicts only in bcmine/seed hooks
-git push origin bcmine-next
-```
+| **`origin/bcmine-next`** | BCMine port integration |
+| **`pyx/…`** | Archive / roadshow issuance only |
 
 ## Port layers (status)
 
-| Layer | Status | Notes |
-|-------|--------|--------|
-| 1 Assets | Done | `public/bcmine/` |
-| 2 ToastMessage | Done | Optional VC link |
-| 3a Custom seed | Done | `seed.yaml` + DPP `.hbs` + **GS1 registrars** |
-| 3b Organisations | Done | `actors.json` |
-| 3c Entities | In progress | `entities.json` — facilities + products |
-| 3d Credentials | Done | 15 VCs via `credentials.json` + `seedKey` |
-| 3e IDR links | Done | `links.json` → Pyx IDR + `LinkRegistration` |
-| 3f Org branding | Done | `logo` + `primaryColor` on `OrganisationEntity` |
-| 3g ABN/NLIS | Done | ABR + NLIS registrars in `seed.yaml` |
-| 3h Barcode UX | Partial | Verify page QR scanner; pyx GTIN barcode *generation* not ported |
-| 4 Interactive UI | Blocked on RI | pyx `apps[]` / JsonForm — not on `next` ([#458](https://github.com/bcgov/tests-untp/pull/458)) |
+| Layer | Status |
+|-------|--------|
+| 1 Assets | Done |
+| 2 ToastMessage VC link | Done |
+| 3a Custom seed (GS1, ABR, NLIS, DPP `.hbs`) | Done |
+| 3b Organisations + logos/colours + ABN identifiers | Done |
+| 3c Entities (facilities, products, facility links) | Done |
+| 3d Credentials (15 VCs, `seedKey`, entity FKs, `isPublished`) | Done |
+| 3e IDR links (15 verify URLs) | Done |
+| 3h Barcode UX | Partial — verify QR scan only |
+| 4 Interactive issuance UI | **Blocked** — pyx `apps[]` / JsonForm ([#458](https://github.com/bcgov/tests-untp/pull/458)) |
 
-## What pyx provides that we are **not** porting
+## Remaining (optional / operational)
+
+| Item | Notes |
+|------|--------|
+| **Docker smoke test** | `migrate deploy` + seed with VC/storage/IDR env |
+| **Merge `bcmine-next` → bcgov `next`** | Deploy integration |
+| **GTIN barcode generation** | Pyx `BarcodeGenerator` — needs UI + `react-barcode` |
+| **GS1 barcode → resolve page** | Use `identifier-carriers.json` in a lookup UI |
+| **Extra render templates** | DCC/DFR/DTE/DIA BCMine styling (optional) |
+| **RI issuance wizards** | Product decision — large effort |
+
+## What we do not port
 
 - Root `app-config.json` and mock-app issuance pipelines
 - `BarcodeGenerator`, `ConformityCredential`, `QRCodeScannerDialogButton`, `Scanning`, `GenericFeature`
-- `yarn.lock` / mock-app package layout
 
-Roadshow UX stays on **`pyx/MSPYX-826_bcmine_v0.6.0`** until RI grows equivalent workflows.
+Roadshow click-through issuance: keep **`pyx/MSPYX-826_bcmine_v0.6.0`**.
 
-## Proof of a conflict-free branch
+## Seed order (BCMine block)
 
-```bash
-git fetch upstream
-git merge-tree $(git merge-base HEAD upstream/next) HEAD upstream/next | grep -c conflict || echo "clean vs upstream/next"
-git merge origin/pyx/MSPYX-826_bcmine_v0.6.0 --no-commit  # expect failure — do not commit
-```
+1. `seed.yaml` (registrars + render template)
+2. `actors.json` (orgs + branding + ABN)
+3. `entities.json` (facilities + products)
+4. `credentials.json` (sign + store + FKs)
+5. IDR scheme registration (main seed)
+6. `links.json` (Pyx IDR publish)
 
-See also [pyx-onto-next-plan.md](../rebase/pyx-onto-next-plan.md), [layer-3-bcmine-port-spike.md](../rebase/layer-3-bcmine-port-spike.md).
+## Environment
+
+- `BCMINE_SEED_DIR`, `SKIP_BCMINE_SEED`
+- `SERVICE_ENCRYPTION_KEY`, `SYSTEM_VC_*`, `SYSTEM_STORAGE_*`, `SYSTEM_IDR_*`
+- `RI_PUBLIC_BASE_URL` or `RI_APP_URL` (IDR link targets, default `http://localhost:3003`)
