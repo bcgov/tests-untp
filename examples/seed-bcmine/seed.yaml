@@ -1,0 +1,100 @@
+# BC Mine Custom Seed Manifest
+#
+# Provisions GS1 registrar with identifier schemes used in the
+# British Columbia Copper Supply Chain demo.
+#
+# Mount this directory into the container at /app/seed/custom/:
+#   volumes:
+#     - ./examples/seed-bcmine:/app/seed/custom:ro
+
+# ── Tenants ────────────────────────────────────────────────────────────────────
+# Pre-provision BC Mine actors with branding so they're ready on first login.
+
+tenants:
+  - id: "clbcmtn01000000000000000a"
+    name: "Copper Mine"
+    externalIdpGroupId: "/copper-mine"
+    primaryColor: "#b5651d"
+    secondaryColor: "#391561"
+    logo: "/bc-logo.png"
+
+  - id: "clbcmtn02000000000000000a"
+    name: "Copper Smelter"
+    externalIdpGroupId: "/copper-smelter"
+    primaryColor: "#b5651d"
+    secondaryColor: "#391561"
+    logo: "/bc-logo.png"
+
+  - id: "clbcmtn03000000000000000a"
+    name: "Battery Manufacturer"
+    externalIdpGroupId: "/battery-manufacturer"
+    primaryColor: "#b5651d"
+    secondaryColor: "#391561"
+    logo: "/bc-logo.png"
+
+  - id: "clbcmtn04000000000000000a"
+    name: "CopperMark"
+    externalIdpGroupId: "/coppermark"
+    primaryColor: "#b5651d"
+    secondaryColor: "#391561"
+    logo: "/coppermark-logo.png"
+
+  - id: "clbcmtn05000000000000000a"
+    name: "OrgBook"
+    externalIdpGroupId: "/orgbook"
+    primaryColor: "#b5651d"
+    secondaryColor: "#391561"
+    logo: "/bc-logo.png"
+
+  - id: "clbcmtn06000000000000000a"
+    name: "TSM"
+    externalIdpGroupId: "/tsm"
+    primaryColor: "#b5651d"
+    secondaryColor: "#391561"
+    logo: "/tsm-logo.png"
+
+registrars:
+  # ── GS1 ──────────────────────────────────────────────────────────────────────
+  - id: "clbcmgs1r000000000000000a"
+    name: "GS1"
+    namespace: "gs1"
+    url: "https://www.gs1.org"
+    identifierSchemes:
+      # GTIN — identifies products (copper concentrate, cathodes, batteries)
+      - id: "clbcmgtn0000000000000000a"
+        name: "GS1 Global Trade Item Number"
+        primaryKey: "01"
+        validationPattern: "^\\d{14}$"
+        linkTemplate: "/{primaryKey}/{value}"
+        qualifiers:
+          - id: "clbcmbat0000000000000000a"
+            key: "10"
+            description: "Batch/Lot Number"
+            validationPattern: "^[A-Za-z0-9]{1,20}$"
+            order: 0
+          - id: "clbcmser0000000000000000a"
+            key: "21"
+            description: "Serial Number"
+            validationPattern: "^[A-Za-z0-9]{1,20}$"
+            order: 1
+      # GLN — identifies locations (mine, smelter, battery plant)
+      - id: "clbcmgln0000000000000000a"
+        name: "GS1 Global Location Number"
+        primaryKey: "414"
+        validationPattern: "^\\d{13}$"
+        linkTemplate: "/{primaryKey}/{value}"
+
+# ── Data Model Extensions ────────────────────────────────────────────────────
+# No extensions needed — BC Mine uses core UNTP credential types:
+# - DigitalProductPassport v0.6.0
+# - DigitalConformityCredential v0.6.0
+# - DigitalFacilityRecord v0.6.0
+# - DigitalIdentityAnchor v0.6.0
+# - DigitalTraceabilityEvent v0.6.0
+
+dataModels: []
+
+# ── Render Templates ─────────────────────────────────────────────────────────
+# Uses default system templates (seeded by seed.ts for each core data model).
+
+renderTemplates: []
