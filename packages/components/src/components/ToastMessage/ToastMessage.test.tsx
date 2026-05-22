@@ -7,7 +7,6 @@ describe('Toast Message', () => {
   test('renders ToastMessage component and triggers toast', async () => {
     const status = Status.success;
     const message = 'Test message';
-    const linkURL = '';
 
     // Render the component
     render(<ToastMessage />);
@@ -20,6 +19,27 @@ describe('Toast Message', () => {
     // Check that the toast message is correctly.
     await waitFor(() => {
       expect(document.body).toHaveTextContent(message);
+    });
+  });
+
+  test('renders toast with linkURL when provided', async () => {
+    const status = Status.success;
+    const message = 'VC issued';
+    const linkURL = 'https://example.com/vc/123';
+
+    render(<ToastMessage />);
+
+    act(() => {
+      toastMessage({ status, message, linkURL });
+    });
+
+    await waitFor(() => {
+      expect(document.body).toHaveTextContent(message);
+      expect(document.body).toHaveTextContent('Open VC');
+      const link = document.querySelector('a[href="https://example.com/vc/123"]');
+      expect(link).not.toBeNull();
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
   });
 });
