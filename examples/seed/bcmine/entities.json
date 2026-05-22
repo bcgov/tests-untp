@@ -3,7 +3,7 @@
     {
       "key": "bcmine-mine-site",
       "name": "BC Copper Mine Site",
-      "description": "Mine facility — BCMine demo (pyx Transformation Event bizLocation)",
+      "description": "Mine facility — BCMine demo",
       "organisationName": "Copper Mine",
       "schemePrimaryKey": "gln",
       "identifierValue": "9359502000034"
@@ -15,15 +15,24 @@
       "organisationName": "Copper Smelter",
       "schemePrimaryKey": "gln",
       "identifierValue": "1321202290648"
+    },
+    {
+      "key": "bcmine-battery-site",
+      "name": "BC Battery Assembly Plant",
+      "description": "Battery manufacturing — BCMine demo",
+      "organisationName": "Battery Manufacturer",
+      "schemePrimaryKey": "gln",
+      "identifierValue": "9520123456781"
     }
   ],
   "products": [
     {
       "key": "bcmine-copper-concentrate",
       "name": "Copper Concentrate",
-      "description": "Mine output — BCMine demo (pyx outputEPCList)",
+      "description": "Mine output — BCMine demo",
       "level": "BATCH",
       "organisationName": "Copper Mine",
+      "facilityName": "BC Copper Mine Site",
       "schemePrimaryKey": "01",
       "identifierValue": "09359502000034",
       "batchNumber": "10001"
@@ -34,9 +43,21 @@
       "description": "Smelter output — BCMine demo",
       "level": "BATCH",
       "organisationName": "Copper Smelter",
+      "facilityName": "BC Copper Smelter",
       "schemePrimaryKey": "01",
       "identifierValue": "09520123456788",
       "batchNumber": "6789"
+    },
+    {
+      "key": "bcmine-battery-pack",
+      "name": "EV Battery Pack 300Ah",
+      "description": "Battery manufacturer output — BCMine demo",
+      "level": "BATCH",
+      "organisationName": "Battery Manufacturer",
+      "facilityName": "BC Battery Assembly Plant",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09520123456701",
+      "batchNumber": "9001"
     }
   ]
 }

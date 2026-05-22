@@ -1,0 +1,26 @@
+{
+  "description": "Pyx app-config identifierSchemes carrier hints for barcode / manual entry UX",
+  "carriers": [
+    {
+      "type": "gtin",
+      "schemePrimaryKeys": ["01"],
+      "registrarNamespace": "gs1",
+      "format": "^(\\d{12,14}|\\d{8})$",
+      "inputModes": ["barcode", "manual"]
+    },
+    {
+      "type": "nlis",
+      "schemePrimaryKeys": ["nlis"],
+      "registrarNamespace": "nlis",
+      "format": "^[A-Z0-9]{16}$",
+      "inputModes": ["manual"]
+    },
+    {
+      "type": "abn",
+      "schemePrimaryKeys": ["abn"],
+      "registrarNamespace": "abr",
+      "format": "^\\d{11}$",
+      "inputModes": ["manual"]
+    }
+  ]
+}

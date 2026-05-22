@@ -61,21 +61,30 @@ export async function runBcmineDataSeed(deps: BcmineSeedDependencies): Promise<v
   let skipped = 0;
 
   for (const actor of manifest.actors) {
+    const description = [actor.brandTitle, actor.type].filter(Boolean).join(' · ') || manifest.chainName;
+    const branding = {
+      description,
+      logo: actor.logo ?? undefined,
+      primaryColor: actor.primaryColor ?? undefined,
+    };
+
     const existing = await prisma.organisationEntity.findFirst({
       where: { tenantId, name: actor.name },
     });
     if (existing) {
+      await prisma.organisationEntity.update({
+        where: { id: existing.id },
+        data: branding,
+      });
       skipped++;
       continue;
     }
-
-    const description = [actor.brandTitle, actor.type].filter(Boolean).join(' · ') || manifest.chainName;
 
     await prisma.organisationEntity.create({
       data: {
         tenantId,
         name: actor.name,
-        description,
+        ...branding,
       },
     });
     created++;

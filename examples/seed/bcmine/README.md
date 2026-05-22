@@ -1,84 +1,96 @@
 # BCMine custom seed (pyx → `next`)
 
-Ports the **BC Copper** demo from `pyx/MSPYX-826_bcmine_v0.6.0` onto `next` in two layers:
+Ports the **BC Copper** demo from `pyx/MSPYX-826_bcmine_v0.6.0` onto `next` on branch **`bcmine-next`**.
 
 | Layer | Files | Loaded by |
 |-------|--------|-----------|
-| **3a** | `seed.yaml`, `render-templates/dpp-bcmine.hbs` | [custom seed](../../packages/reference-implementation/prisma/custom-seed.ts) |
-| **3b** | `actors.json` | [seed-bcmine.ts](../../packages/reference-implementation/prisma/seed-bcmine.ts) via main `seed.ts` |
-| **3c** | `entities.json` | [seed-bcmine-entities.ts](../../packages/reference-implementation/prisma/seed-bcmine-entities.ts) — facilities + products with GS1 IDs |
-| **3d** | `credentials.json` | [seed-bcmine-credentials.ts](../../packages/reference-implementation/prisma/seed-bcmine-credentials.ts) — signs via VCKit, stores via system storage |
+| **3a** | `seed.yaml`, `render-templates/dpp-bcmine.hbs` | [custom-seed.ts](../../packages/reference-implementation/prisma/custom-seed.ts) |
+| **3b** | `actors.json` | [seed-bcmine.ts](../../packages/reference-implementation/prisma/seed-bcmine.ts) |
+| **3c** | `entities.json` | [seed-bcmine-entities.ts](../../packages/reference-implementation/prisma/seed-bcmine-entities.ts) |
+| **3d** | `credentials.json` | [seed-bcmine-credentials.ts](../../packages/reference-implementation/prisma/seed-bcmine-credentials.ts) |
+| **3e** | `links.json` | [seed-bcmine-links.ts](../../packages/reference-implementation/prisma/seed-bcmine-links.ts) (after Pyx IDR scheme registration) |
 
-Static images live in `packages/reference-implementation/public/bcmine/` (branch `bcmine-next`, Layer 1).
+Static images: `packages/reference-implementation/public/bcmine/` → `/bcmine/<file>.png`
 
 ## Docker
-
-Mount this directory as the custom seed root (includes both YAML and JSON):
 
 ```yaml
 volumes:
   - ./examples/seed/bcmine:/app/seed/custom:ro
 ```
 
-Then restart / re-run seed:
-
 ```bash
 cd packages/reference-implementation
+pnpm prisma migrate deploy
 pnpm prisma db seed
 ```
 
 ## What gets created
 
-### Custom seed (`seed.yaml`)
+### `seed.yaml`
 
-- **GS1 registrars** (GTIN `01`, GLN `gln`) — required for `entities.json` identifiers
-- **Render template** `BC Copper DPP (BCMine)` for core DPP v0.6.1 (`dataModelId: c1pxfzzkeb86jgeel7hrvmcle`)
-- Template file is the pyx BCMine DPP `.hbs` (non-default; core UNTP template remains default)
-- When using `BCMINE_SEED_DIR` locally, `seed.yaml` is applied automatically (not only via `/app/seed/custom`)
+- **GS1** (GTIN `01`, GLN `gln`), **ABR** (ABN), **NLIS** registrars
+- **BC Copper DPP** render template (v0.6.1, non-default)
 
-### Data seed (`actors.json`)
+### `actors.json`
 
-- System **tenant** colours from pyx chain `styles`
-- Six **OrganisationEntity** rows: Copper Mine, Copper Smelter, Battery Manufacturer, CopperMark, OrgBook, TSM
-- Idempotent by organisation `name`
+- Tenant chain colours
+- Six organisations with **`logo`** and **`primaryColor`** on `OrganisationEntity` (re-applied on re-seed)
 
-### Entity seed (`entities.json`)
+### `entities.json`
 
-- **Facilities:** mine site + smelter (GS1 GLN values from pyx demo)
-- **Products:** copper concentrate + cathode batch (GS1 GTIN)
-- Idempotent by facility/product `name`
+- 3 facilities (mine, smelter, battery plant) with GS1 GLNs
+- 3 products linked to facilities (`manufacturingFacilityId`)
 
-### Credential seed (`credentials.json`)
+### `credentials.json` (15 VCs)
 
-- Four demo VCs from core v0.6.0 `example-data.json` templates with BCMine overrides (DPP, DFR, DCC, DTE)
-- Signed with the system VC adapter and stored like production issuance
-- `Credential` rows linked to the matching `OrganisationEntity` (idempotent per org + `credentialType`)
-- Verify in the RI UI with `uri` + `digestMultibase` from the credential record (or storage URI)
-- Skipped when VC/storage were not seeded (same env as main seed)
+Maps pyx issuance features to seeded credentials (idempotent via `Credential.seedKey`):
+
+| seedKey | Type | Issuer org |
+|---------|------|------------|
+| `bcmine-mine-dte` | DTE | Copper Mine |
+| `bcmine-mine-dpp` | DPP | Copper Mine |
+| `bcmine-mine-dfr` | DFR | Copper Mine |
+| `bcmine-mine-move-dte` | DTE | Copper Mine |
+| `bcmine-smelter-transform-dte` | DTE | Copper Smelter |
+| `bcmine-smelter-dpp` | DPP | Copper Smelter |
+| `bcmine-smelter-dfr` | DFR | Copper Smelter |
+| `bcmine-smelter-move-dte` | DTE | Copper Smelter |
+| `bcmine-battery-transform-dte` | DTE | Battery Manufacturer |
+| `bcmine-battery-dpp` | DPP | Battery Manufacturer |
+| `bcmine-coppermark-mine-dcc` | DCC | CopperMark |
+| `bcmine-coppermark-smelter-dcc` | DCC | CopperMark |
+| `bcmine-orgbook-mine-dcc` | DCC | OrgBook |
+| `bcmine-orgbook-mine-dia` | DIA | OrgBook |
+| `bcmine-tsm-mine-dcc` | DCC | TSM |
+
+Requires VC + storage env (same as main seed).
+
+### `links.json`
+
+Publishes Pyx IDR links for GTIN/GLN identifiers → RI **`/verify?uri=…&digestMultibase=…`** URLs.
+
+### `identifier-carriers.json`
+
+Documents pyx barcode/manual-entry scheme hints (GTIN, NLIS, ABN) for future UI — not executed by seed.
+
+### Barcode / QR UX
+
+- **Verify page** (`/verify`): “Scan credential QR” using [Scanner](../../packages/reference-implementation/src/components/Scanner) + [VerifyQrScanner](../../packages/reference-implementation/src/components/VerifyQrScanner)
+- Pyx **BarcodeGenerator** (GTIN element strings) is **not** ported — would need `react-barcode` + issuance UI
 
 ## Environment
 
-| Variable | Default | Effect |
-|----------|---------|--------|
-| `SKIP_CUSTOM_SEED` | unset | When `true`, skips YAML custom seed only |
-| `SKIP_BCMINE_SEED` | unset | When `true`, skips `actors.json` organisation seed |
-| `BCMINE_SEED_DIR` | auto | Override directory containing `actors.json` |
+| Variable | Effect |
+|----------|--------|
+| `SKIP_BCMINE_SEED` | Skip all BCMine seed modules |
+| `BCMINE_SEED_DIR` | Directory with `actors.json` |
+| `RI_PUBLIC_BASE_URL` | Base URL for IDR link targets (default `http://localhost:3003`) |
+| `SERVICE_ENCRYPTION_KEY`, `SYSTEM_VC_*`, `SYSTEM_STORAGE_*`, `SYSTEM_IDR_*` | Required for credentials + links |
 
-## Not included (see spike doc)
+## Not included
 
-- Old `app-config.json` **apps / features / JsonForm** issuance flows — removed on `next` ([#458](https://github.com/bcgov/tests-untp/pull/458))
-- IDR link registration for seeded identifiers — use RI APIs or extend seed later
-- Interactive multi-actor issuance UX (pyx `app-config` apps/features)
+- pyx **`app-config.json`** interactive JsonForm issuance ([#458](https://github.com/bcgov/tests-untp/pull/458))
+- Full pyx **BarcodeGenerator** in issuance flows
 
-Fork workflow: [docs/bcgov/bcmine-port-strategy.md](../../docs/bcgov/bcmine-port-strategy.md)  
-Full analysis: [docs/rebase/layer-3-bcmine-port-spike.md](../../docs/rebase/layer-3-bcmine-port-spike.md)
-
-## Local dev without Docker
-
-From repo root, after main seed prerequisites (`SERVICE_ENCRYPTION_KEY`, Postgres, etc.):
-
-```bash
-BCMINE_SEED_DIR="$(pwd)/examples/seed/bcmine" pnpm --filter untp-reference-implementation exec prisma db seed
-```
-
-Custom seed also runs when `examples/seed/bcmine/seed.yaml` is found via the same mount path logic.
+See [docs/bcgov/bcmine-port-strategy.md](../../docs/bcgov/bcmine-port-strategy.md).

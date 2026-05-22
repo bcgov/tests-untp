@@ -163,11 +163,7 @@ export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependen
       }
 
       const existing = await prisma.credential.findFirst({
-        where: {
-          tenantId,
-          credentialType: entry.credentialType,
-          organisationId: organisation.id,
-        },
+        where: { tenantId, seedKey: entry.key },
       });
       if (existing) {
         skipped++;
@@ -197,6 +193,7 @@ export async function runBcmineCredentialSeed(deps: BcmineCredentialSeedDependen
       await prisma.credential.create({
         data: {
           tenantId,
+          seedKey: entry.key,
           storageUri: storageRecord.uri,
           digestMultibase: storageRecord.digestMultibase,
           decryptionKey: storageRecord.decryptionKey,

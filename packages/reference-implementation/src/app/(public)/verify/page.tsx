@@ -7,11 +7,13 @@ import { VerifiableCredential, UnsignedCredential } from '@vckit/core-types';
 import { Loader } from '@reference-implementation/components';
 import Credential from '@/components/Credential/Credential';
 import { MessageText } from '@/components/MessageText';
+import { VerifyQrScanner } from '@/components/VerifyQrScanner';
 import { verifyCredential, VerifyCredentialResult } from '@/services/credentials';
 
 const Verify = () => {
   const search = useSearchParams();
-  const [state, setState] = useState<'loading' | 'success' | 'error'>('loading');
+  const hasVerifyParams = Boolean(search?.get('uri') || search?.get('q'));
+  const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>(hasVerifyParams ? 'loading' : 'idle');
   const [result, setResult] = useState<VerifyCredentialResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -63,8 +65,19 @@ const Verify = () => {
       }
     };
 
-    run();
-  }, [search]);
+    if (hasVerifyParams) {
+      run();
+    }
+  }, [search, hasVerifyParams]);
+
+  if (state === 'idle') {
+    return (
+      <div className='mx-auto max-w-lg p-6'>
+        <VerifyQrScanner />
+        <MessageText text='Scan a credential QR code or open a verify link with uri and digestMultibase.' />
+      </div>
+    );
+  }
 
   if (state === 'loading') {
     return (
@@ -90,7 +103,8 @@ const Verify = () => {
   }
 
   return (
-    <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+    <div className='mx-auto max-w-lg p-6'>
+      <VerifyQrScanner />
       <MessageText status={Status.error} text={errorMessage} />
     </div>
   );

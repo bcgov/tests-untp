@@ -1,0 +1,52 @@
+{
+  "links": [
+    {
+      "key": "link-concentrate-dpp",
+      "credentialSeedKey": "bcmine-mine-dpp",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09359502000034",
+      "qualifierPath": "/21/10001",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dpp",
+      "title": "Copper Concentrate DPP"
+    },
+    {
+      "key": "link-mine-gln-dfr",
+      "credentialSeedKey": "bcmine-mine-dfr",
+      "namespace": "gs1",
+      "schemePrimaryKey": "gln",
+      "identifierValue": "9359502000034",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dfr",
+      "title": "BC Copper Mine DFR"
+    },
+    {
+      "key": "link-smelter-gln-dfr",
+      "credentialSeedKey": "bcmine-smelter-dfr",
+      "namespace": "gs1",
+      "schemePrimaryKey": "gln",
+      "identifierValue": "1321202290648",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dfr",
+      "title": "BC Copper Smelter DFR"
+    },
+    {
+      "key": "link-cathode-dpp",
+      "credentialSeedKey": "bcmine-smelter-dpp",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09520123456788",
+      "qualifierPath": "/21/6789",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dpp",
+      "title": "Copper Cathode DPP"
+    },
+    {
+      "key": "link-battery-dpp",
+      "credentialSeedKey": "bcmine-battery-dpp",
+      "namespace": "gs1",
+      "schemePrimaryKey": "01",
+      "identifierValue": "09520123456701",
+      "qualifierPath": "/21/9001",
+      "linkType": "https://test.uncefact.org/vocabulary/linkTypes/dpp",
+      "title": "EV Battery DPP"
+    }
+  ]
+}

@@ -46,8 +46,11 @@ git push origin bcmine-next
 | 3a Custom seed | Done | `seed.yaml` + DPP `.hbs` + **GS1 registrars** |
 | 3b Organisations | Done | `actors.json` |
 | 3c Entities | In progress | `entities.json` — facilities + products |
-| 3d Credentials | Partial | DPP, DFR, DCC; add DTE, DIA |
-| 3e IDR links | Todo | `LinkRegistration` after schemes exist |
+| 3d Credentials | Done | 15 VCs via `credentials.json` + `seedKey` |
+| 3e IDR links | Done | `links.json` → Pyx IDR + `LinkRegistration` |
+| 3f Org branding | Done | `logo` + `primaryColor` on `OrganisationEntity` |
+| 3g ABN/NLIS | Done | ABR + NLIS registrars in `seed.yaml` |
+| 3h Barcode UX | Partial | Verify page QR scanner; pyx GTIN barcode *generation* not ported |
 | 4 Interactive UI | Blocked on RI | pyx `apps[]` / JsonForm — not on `next` ([#458](https://github.com/bcgov/tests-untp/pull/458)) |
 
 ## What pyx provides that we are **not** porting

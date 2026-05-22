@@ -32,6 +32,28 @@ registrars:
             validationPattern: "^[A-Za-z0-9]{1,20}$"
             order: 1
 
+  - id: "clabrreq0000000000000000a"
+    name: "Australian Business Register"
+    namespace: "abr"
+    url: "https://abr.business.gov.au"
+    identifierSchemes:
+      - id: "clabrabn0000000000000000a"
+        name: "Australian Business Number"
+        primaryKey: "abn"
+        validationPattern: "^\\d{11}$"
+        linkTemplate: "/{primaryKey}/{value}"
+
+  - id: "claatpnls000000000000000a"
+    name: "National Livestock Identification System"
+    namespace: "nlis"
+    url: "https://www.nlis.com.au"
+    identifierSchemes:
+      - id: "claatpnls100000000000000a"
+        name: "NLIS Device ID"
+        primaryKey: "nlis"
+        validationPattern: "^[A-Z0-9]{16}$"
+        linkTemplate: "/{primaryKey}/{value}"
+
 renderTemplates:
   - id: "clbcmine00000000000000001"
     name: "BC Copper DPP (BCMine)"

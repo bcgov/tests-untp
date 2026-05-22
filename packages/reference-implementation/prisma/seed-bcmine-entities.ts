@@ -14,6 +14,7 @@ export type BcmineEntitiesFile = {
     organisationName: string;
     schemePrimaryKey: string;
     identifierValue: string;
+    registrarNamespace?: string;
   }>;
   products?: Array<{
     key: string;
@@ -21,8 +22,10 @@ export type BcmineEntitiesFile = {
     description?: string;
     level: 'MODEL' | 'BATCH' | 'ITEM';
     organisationName: string;
+    facilityName?: string;
     schemePrimaryKey: string;
     identifierValue: string;
+    registrarNamespace?: string;
     batchNumber?: string;
     serialNumber?: string;
   }>;
@@ -48,12 +51,13 @@ async function resolveSchemeId(
   tenantId: string,
   schemePrimaryKey: string,
   logger: Logger,
+  registrarNamespace = 'gs1',
 ): Promise<string | null> {
   const scheme = await prisma.identifierScheme.findFirst({
     where: {
       tenantId,
       primaryKey: schemePrimaryKey,
-      registrar: { namespace: 'gs1' },
+      registrar: { namespace: registrarNamespace },
     },
   });
   if (!scheme) {
@@ -117,7 +121,13 @@ export async function runBcmineEntitySeed(deps: BcmineEntitySeedDependencies): P
         continue;
       }
 
-      const schemeId = await resolveSchemeId(prisma, tenantId, entry.schemePrimaryKey, logger);
+      const schemeId = await resolveSchemeId(
+        prisma,
+        tenantId,
+        entry.schemePrimaryKey,
+        logger,
+        entry.registrarNamespace,
+      );
       if (!schemeId) continue;
 
       const primaryIdentifierId = await findOrCreateIdentifier(
@@ -162,7 +172,13 @@ export async function runBcmineEntitySeed(deps: BcmineEntitySeedDependencies): P
         continue;
       }
 
-      const schemeId = await resolveSchemeId(prisma, tenantId, entry.schemePrimaryKey, logger);
+      const schemeId = await resolveSchemeId(
+        prisma,
+        tenantId,
+        entry.schemePrimaryKey,
+        logger,
+        entry.registrarNamespace,
+      );
       if (!schemeId) continue;
 
       const primaryIdentifierId = await findOrCreateIdentifier(
@@ -172,12 +188,21 @@ export async function runBcmineEntitySeed(deps: BcmineEntitySeedDependencies): P
         entry.identifierValue,
       );
 
+      let manufacturingFacilityId: string | undefined;
+      if (entry.facilityName) {
+        const facility = await prisma.facility.findFirst({
+          where: { tenantId, name: entry.facilityName },
+        });
+        manufacturingFacilityId = facility?.id;
+      }
+
       await createProducts(tenantId, [
         {
           name: entry.name,
           description: entry.description,
           level: entry.level as ProductLevel,
           producedByOrganisationId: organisation.id,
+          manufacturingFacilityId,
           primaryIdentifierId,
           batchNumber: entry.batchNumber,
           serialNumber: entry.serialNumber,

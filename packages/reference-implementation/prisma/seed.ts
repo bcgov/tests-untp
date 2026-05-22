@@ -90,13 +90,16 @@ async function main() {
   let idrAdapterType: string | null = null;
   let idrConfig: unknown = null;
   let idrSeeded = false;
+  let idrRegistryEntry:
+    | (typeof adapterRegistry)[typeof ServiceType.IDR][keyof (typeof adapterRegistry)[typeof ServiceType.IDR]]
+    | null = null;
   if (encryptionService) {
     try {
       const idrAdapters = adapterRegistry[ServiceType.IDR];
       const permittedIdrTypes = Object.keys(idrAdapters) as Array<keyof typeof idrAdapters>;
       const resolvedIdrAdapterType = (process.env.SYSTEM_IDR_ADAPTER_TYPE as keyof typeof idrAdapters) || 'PYX_IDR';
       idrAdapterType = resolvedIdrAdapterType;
-      const idrRegistryEntry = idrAdapters[resolvedIdrAdapterType];
+      idrRegistryEntry = idrAdapters[resolvedIdrAdapterType];
       if (!idrRegistryEntry) {
         throw new Error(
           `Unknown IDR adapter type: "${idrAdapterType}". Permitted types: ${permittedIdrTypes.join(', ')}`,
@@ -632,6 +635,7 @@ async function main() {
   // ── BCMine demo data (organisations + tenant colours) ─────────────────────
   // When examples/seed/bcmine is mounted at /app/seed/custom, actors.json is picked up
   // automatically. Override dir with BCMINE_SEED_DIR. Set SKIP_BCMINE_SEED=true to skip.
+  let bcmineSeedDir: string | null = null;
   if (process.env.SKIP_BCMINE_SEED !== 'true') {
     const bcmineCandidates = [
       process.env.BCMINE_SEED_DIR?.trim(),
@@ -641,6 +645,7 @@ async function main() {
     const bcmineDir = bcmineCandidates.find((dir) => fs.existsSync(path.join(dir, 'actors.json')));
 
     if (bcmineDir) {
+      bcmineSeedDir = bcmineDir;
       const bcmineLogger = logger.child({ module: 'seed-bcmine' });
 
       // When BCMINE_SEED_DIR points at examples/seed/bcmine (not /app/seed/custom), run its seed.yaml here.
@@ -700,6 +705,7 @@ async function main() {
           'Skipping BCMine credential seed: VC and/or storage service not seeded (SERVICE_ENCRYPTION_KEY and adapter env required)',
         );
       }
+
     }
   }
 
@@ -789,6 +795,29 @@ async function main() {
     }
   } else if (idrSeeded) {
     logger.info({ adapterType: idrAdapterType }, 'Non-Pyx IDR adapter — skipping scheme registration');
+  }
+
+  // BCMine IDR links (after schemes are registered with Pyx IDR)
+  if (
+    bcmineSeedDir &&
+    idrSeeded &&
+    idrAdapterType === 'PYX_IDR' &&
+    idrRegistryEntry &&
+    idrConfig
+  ) {
+    const { runBcmineLinkSeed } = await import('./seed-bcmine-links.js');
+    const idrAdapter = idrRegistryEntry.factory(
+      idrConfig as Parameters<typeof idrRegistryEntry.factory>[0],
+      logger.child({ service: 'IDR - BCMine Seed' }),
+    );
+    await runBcmineLinkSeed({
+      prisma,
+      logger: logger.child({ module: 'seed-bcmine-links' }),
+      tenantId: SYSTEM_TENANT_ID,
+      bcmineDir: bcmineSeedDir,
+      idrService: idrAdapter,
+      publicBaseUrl: process.env.RI_PUBLIC_BASE_URL?.trim() || 'http://localhost:3003',
+    });
   }
 
   logger.info(

@@ -122,6 +122,7 @@ model Tenant {
 model Credential {
   id              String   @id @default(cuid())
   tenantId        String
+  seedKey         String?
   storageUri      String
   digestMultibase String
   decryptionKey   String?
@@ -138,6 +139,7 @@ model Credential {
   facility        Facility?           @relation(fields: [facilityId], references: [id], onDelete: SetNull)
   product         Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
 
+  @@unique([tenantId, seedKey])
   @@index([tenantId])
 }
 
@@ -316,6 +318,8 @@ model OrganisationEntity {
   tenantId              String
   name                  String
   description           String?
+  logo                  String?
+  primaryColor          String?
   location              Json?
   primaryIdentifierId   String?  @unique
   createdAt             DateTime @default(now())
