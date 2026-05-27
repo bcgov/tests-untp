@@ -1,9 +1,7 @@
-## Development overlay (BC Gov OpenShift Gold).
-## From repo root:
+## Development overlay (BC Gov OpenShift Gold) — low quota profile.
 ##   helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n <namespace>
 ##
-## Public URLs: standard Gold Route (*.apps.gold.devops.gov.bc.ca), edge TLS.
-## Release name must be tests-untp-ri (matches fullnameOverride).
+## ~2.5Gi PVC total (5 x 512Mi). Tune up if Keycloak or RI OOM.
 
 route:
   annotations:
@@ -15,29 +13,86 @@ route:
 
 ri:
   image:
-    # Published by uncefact/tests-untp on every merge to next (see .github/workflows/docker-ri.yml)
     repository: ghcr.io/uncefact/tests-untp/reference-implementation
     tag: next
     pullPolicy: Always
   verifyAllowPrivateUrls: true
   deploymentEnvironment: dev
+  resources:
+    limits:
+      cpu: 400m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
+keycloak:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 384Mi
 
 riDb:
   persistence:
-    size: 8Gi
+    size: 512Mi
     storageClass: netapp-file-standard
+  resources:
+    limits:
+      memory: 384Mi
+    requests:
+      cpu: 50m
+      memory: 192Mi
 
 vckitDb:
   persistence:
-    size: 8Gi
+    size: 512Mi
     storageClass: netapp-file-standard
+  resources:
+    limits:
+      memory: 384Mi
+    requests:
+      cpu: 50m
+      memory: 192Mi
+
+vckit:
+  resources:
+    limits:
+      cpu: 400m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
 
 storage:
   persistence:
-    size: 5Gi
+    size: 512Mi
     storageClass: netapp-file-standard
+  resources:
+    limits:
+      memory: 384Mi
+    requests:
+      cpu: 50m
+      memory: 192Mi
+
+idr:
+  resources:
+    limits:
+      cpu: 300m
+      memory: 384Mi
+    requests:
+      cpu: 50m
+      memory: 192Mi
 
 minio:
   persistence:
-    size: 5Gi
+    size: 512Mi
     storageClass: netapp-file-standard
+  resources:
+    limits:
+      memory: 384Mi
+    requests:
+      cpu: 50m
+      memory: 192Mi

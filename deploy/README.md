@@ -45,7 +45,7 @@ docker build -f packages/reference-implementation/Dockerfile --target build \
 ## Prerequisites
 
 - OpenShift Routes: `route.ri.host` and `route.keycloak.host` in `deploy/dev/values.yaml`
-- Namespace quota for five PVCs plus eight workloads
+- Namespace quota: dev overlay uses **512Mi per PVC** (~2.5Gi total) and small CPU/memory requests (see `deploy/dev/values.yaml`)
 - Keycloak realm client `ri-app` secret must match chart Secret key `oidc-client-secret` (default `changeme` on first install)
 
 ## Components (MVP)
