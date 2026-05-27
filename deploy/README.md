@@ -8,7 +8,9 @@ helm upgrade --install tests-untp-ri ./charts/tests-untp-ri \
   -n f890b1-dev
 ```
 
-Use release name **`tests-untp-ri`** (matches `fullnameOverride`). Deploy into **`f890b1-dev`** — the same namespace as **`untp-publisher-service`**.
+Use release name **`tests-untp-ri`** (matches `fullnameOverride`). Deploy into **`f890b1-dev`** with **`untp-publisher-service`**.
+
+**Shared quota plan:** [f890b1-dev-quota.md](f890b1-dev-quota.md) — storage, memory, and CPU split across both releases.
 
 ## Layout
 
@@ -45,13 +47,7 @@ docker build -f packages/reference-implementation/Dockerfile --target build \
 ## Prerequisites
 
 - OpenShift Routes: `route.ri.host` and `route.keycloak.host` in `deploy/dev/values.yaml`
-- Namespace **`f890b1-dev`** (shared with `untp-publisher-service`). Check quotas first:
-
-  ```bash
-  kubectl describe resourcequota -n f890b1-dev
-  ```
-
-  Dev overlay targets remaining **netapp-file-standard** storage (e.g. **512Mi left** → two **256Mi** DB PVCs only; storage + MinIO use **emptyDir**). Memory/cpu **requests** are kept low so RI + publisher stay under **2Gi / 500m** long-running limits.
+- See **[f890b1-dev-quota.md](f890b1-dev-quota.md)** for the combined publisher + RI budget (`1Gi` storage, `2Gi` memory requests, `500m` CPU requests).
 - Keycloak realm client `ri-app` secret must match chart Secret key `oidc-client-secret` (default `changeme` on first install)
 
 ## Components (MVP)

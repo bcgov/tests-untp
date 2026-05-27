@@ -1,13 +1,8 @@
-## Development overlay — f890b1-dev (shared with untp-publisher-service).
+## f890b1-dev — shared with untp-publisher-service (see deploy/f890b1-dev-quota.md).
 ##   helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n f890b1-dev
 ##
-## Namespace quota headroom (before RI install):
-##   requests.storage (netapp-file-standard): 512Mi used / 1Gi hard → 512Mi left
-##   requests.memory (long-running):          512Mi used / 2Gi hard → ~1.5Gi left
-##   requests.cpu (long-running):             100m used / 500m hard → 400m left
-##
-## This overlay uses 512Mi PVC (ri-db + vckit-db only) and emptyDir for storage/minio.
-## Sum of memory *requests* for RI pods ≈ 800Mi (fits with publisher).
+## Shared storage budget: publisher 512Mi PVC + RI 256Mi + 256Mi DB PVCs = 1Gi.
+## Shared memory requests: publisher ~256Mi + RI ~768Mi < 2Gi.
 
 route:
   annotations:
