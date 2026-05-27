@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tests-untp-ri.keycloak.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tests-untp-ri.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: keycloak
+  template:
+    metadata:
+      labels:
+        {{- include "tests-untp-ri.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+          args:
+            - start-dev
+            - --import-realm
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: {{ .Values.keycloak.adminUser | quote }}
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: keycloak-admin-password
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME
+              value: {{ printf "http://%s:8080" (include "tests-untp-ri.keycloak.fullname" .) | quote }}
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+          volumeMounts:
+            - name: realms
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+            - name: data
+              mountPath: /opt/keycloak/data
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: management
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          {{- with .Values.keycloak.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: realms
+          configMap:
+            name: {{ include "tests-untp-ri.keycloak.fullname" . }}-realms
+        - name: data
+          emptyDir: {}

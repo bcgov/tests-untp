@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tests-untp-ri.riDb.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ri-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+  selector:
+    {{- include "tests-untp-ri.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: ri-db

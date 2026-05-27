@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tests-untp-ri.idr.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: idr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tests-untp-ri.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: idr
+  template:
+    metadata:
+      labels:
+        {{- include "tests-untp-ri.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: idr
+    spec:
+      containers:
+        - name: idr
+          image: "{{ .Values.idr.image.repository }}:{{ .Values.idr.image.tag }}"
+          imagePullPolicy: {{ .Values.idr.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: OBJECT_STORAGE_ENDPOINT
+              value: {{ include "tests-untp-ri.minio.fullname" . | quote }}
+            - name: OBJECT_STORAGE_PORT
+              value: "9000"
+            - name: OBJECT_STORAGE_USE_SSL
+              value: "false"
+            - name: OBJECT_STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: minio-access-key
+            - name: OBJECT_STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: minio-secret-key
+            - name: OBJECT_STORAGE_BUCKET_NAME
+              value: {{ .Values.minio.bucket | quote }}
+            - name: OBJECT_STORAGE_PATH_STYLE
+              value: "true"
+            - name: IDENTIFIER_PATH
+              value: identifiers
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: system-idr-api-key
+            - name: APP_ENDPOINT
+              value: {{ printf "http://%s:3000" (include "tests-untp-ri.idr.fullname" .) | quote }}
+            - name: APP_NAME
+              value: {{ .Values.idr.appName | quote }}
+            - name: RESOLVER_DOMAIN
+              value: {{ printf "http://%s:3000/api/3.0.0" (include "tests-untp-ri.idr.fullname" .) | quote }}
+            - name: LINK_TYPE_VOC_DOMAIN
+              value: {{ printf "http://%s:3000/api/3.0.0/voc" (include "tests-untp-ri.idr.fullname" .) | quote }}
+            - name: PORT
+              value: "3000"
+          {{- with .Values.idr.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

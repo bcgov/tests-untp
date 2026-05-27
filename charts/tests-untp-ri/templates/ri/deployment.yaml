@@ -1,0 +1,166 @@
+{{- $realm := .Values.keycloak.realm -}}
+{{- $issuerInternal := printf "http://%s:8080/realms/%s" (include "tests-untp-ri.keycloak.fullname" .) $realm -}}
+{{- $authUrl := printf "%s/realms/%s/protocol/openid-connect/auth" (include "tests-untp-ri.keycloak.publicUrl" .) $realm -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tests-untp-ri.ri.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ri
+spec:
+  replicas: {{ .Values.ri.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "tests-untp-ri.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ri
+  template:
+    metadata:
+      labels:
+        {{- include "tests-untp-ri.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ri
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-ri-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "tests-untp-ri.riDb.fullname" . }} 5432; do sleep 3; done']
+        - name: wait-vckit
+          image: busybox:1.36
+          command: ['sh', '-c', 'until wget -qO- http://{{ include "tests-untp-ri.vckit.fullname" . }}:3332/agent-api-docs; do sleep 5; done']
+        - name: wait-keycloak
+          image: busybox:1.36
+          command: ['sh', '-c', 'until wget -qO- http://{{ include "tests-untp-ri.keycloak.fullname" . }}:8080/health/ready 2>/dev/null || wget -qO- http://{{ include "tests-untp-ri.keycloak.fullname" . }}:9000/health/ready; do sleep 5; done']
+      containers:
+        - name: ri
+          image: "{{ .Values.ri.image.repository }}:{{ .Values.ri.image.tag }}"
+          imagePullPolicy: {{ .Values.ri.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3003
+          env:
+            - name: RI_POSTGRES_USER
+              value: {{ .Values.riDb.auth.username | quote }}
+            - name: RI_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: ri-postgres-password
+            - name: RI_POSTGRES_DB
+              value: {{ .Values.riDb.auth.database | quote }}
+            - name: RI_POSTGRES_HOST
+              value: {{ include "tests-untp-ri.riDb.fullname" . | quote }}
+            - name: RI_POSTGRES_PORT
+              value: "5432"
+            - name: AUTH_OIDC_PROVIDER
+              value: keycloak
+            - name: AUTH_OIDC_CLIENT_ID
+              value: ri-app
+            - name: AUTH_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: oidc-client-secret
+            - name: AUTH_OIDC_ISSUER
+              value: {{ $issuerInternal | quote }}
+            - name: AUTH_OIDC_AUTHORIZATION_URL
+              value: {{ $authUrl | quote }}
+            - name: AUTH_OIDC_SERVICE_ACCOUNT_AUDIENCE
+              value: ri-api
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: auth-secret
+            - name: AUTH_TRUST_HOST
+              value: "true"
+            - name: RI_APP_URL
+              value: {{ include "tests-untp-ri.ri.publicUrl" . | quote }}
+            - name: TENANT_MODE
+              value: {{ .Values.ri.tenantMode | quote }}
+            - name: TENANT_CLAIM_NAME
+              value: groups
+            - name: TENANT_CLAIM_FORMAT
+              value: array_first
+            - name: SERVICE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: service-encryption-key
+            - name: DEFAULT_HUMAN_VERIFICATION_URL
+              value: {{ printf "%s/verify" (include "tests-untp-ri.ri.publicUrl" .) | quote }}
+            - name: DEFAULT_MACHINE_VERIFICATION_URL
+              value: {{ printf "http://%s:3332/agent/routeVerificationCredential" (include "tests-untp-ri.vckit.fullname" .) | quote }}
+            - name: VERIFY_ALLOW_PRIVATE_URLS
+              value: {{ ternary "true" "false" .Values.ri.verifyAllowPrivateUrls | quote }}
+            - name: SYSTEM_VC_BASE_URL
+              value: {{ printf "http://%s:3332" (include "tests-untp-ri.vckit.fullname" .) | quote }}
+            - name: SYSTEM_VC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: system-vc-api-key
+            - name: SYSTEM_VC_ADAPTER_TYPE
+              value: VCKIT
+            - name: SYSTEM_VC_API_VERSION
+              value: "1.0.0"
+            - name: SYSTEM_STORAGE_BASE_URL
+              value: {{ printf "http://%s:3334" (include "tests-untp-ri.storage.fullname" .) | quote }}
+            - name: SYSTEM_STORAGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: system-storage-api-key
+            - name: SYSTEM_STORAGE_ADAPTER_TYPE
+              value: UNCEFACT_STORAGE
+            - name: SYSTEM_STORAGE_API_VERSION
+              value: "4.0"
+            - name: SYSTEM_STORAGE_PUBLIC_BUCKET
+              value: {{ .Values.storage.publicBucket | quote }}
+            - name: SYSTEM_STORAGE_PRIVATE_BUCKET
+              value: {{ .Values.storage.privateBucket | quote }}
+            - name: SYSTEM_IDR_BASE_URL
+              value: {{ printf "http://%s:3000" (include "tests-untp-ri.idr.fullname" .) | quote }}
+            - name: SYSTEM_IDR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: system-idr-api-key
+            - name: SYSTEM_IDR_ADAPTER_TYPE
+              value: PYX_IDR
+            - name: SYSTEM_IDR_API_VERSION
+              value: "3.0.0"
+            - name: SYSTEM_IDR_DEFAULT_LINK_TYPE
+              value: untp:dpp
+            - name: SYSTEM_IDR_DEFAULT_MIME_TYPE
+              value: text/html
+            - name: SYSTEM_IDR_DEFAULT_LANGUAGE
+              value: en
+            - name: SYSTEM_IDR_DEFAULT_CONTEXT
+              value: au
+            - name: SYSTEM_IDR_DEFAULT_FWQS
+              value: "true"
+            - name: SYSTEM_DID
+              value: did:web:uncefact.github.io:project-vckit:test-and-development
+            - name: DEPLOYMENT_ENVIRONMENT
+              value: {{ .Values.ri.deploymentEnvironment | quote }}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          {{- with .Values.ri.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

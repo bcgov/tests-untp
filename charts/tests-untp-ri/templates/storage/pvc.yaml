@@ -1,0 +1,18 @@
+{{- if .Values.storage.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tests-untp-ri.storage.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.storage.persistence.storageClass }}
+  storageClassName: {{ .Values.storage.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.persistence.size }}
+{{- end }}

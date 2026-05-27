@@ -1,0 +1,32 @@
+## Development overlay (BC Gov OpenShift).
+## helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n <namespace>
+
+route:
+  ri:
+    host: tests-untp-ri-dev.apps.gold.devops.gov.bc.ca
+  keycloak:
+    host: tests-untp-ri-keycloak-dev.apps.gold.devops.gov.bc.ca
+
+ri:
+  image:
+    repository: ghcr.io/bcgov/tests-untp-reference-implementation
+    tag: dev
+    pullPolicy: Always
+  verifyAllowPrivateUrls: true
+  deploymentEnvironment: dev
+
+riDb:
+  persistence:
+    size: 8Gi
+
+vckitDb:
+  persistence:
+    size: 8Gi
+
+storage:
+  persistence:
+    size: 5Gi
+
+minio:
+  persistence:
+    size: 5Gi

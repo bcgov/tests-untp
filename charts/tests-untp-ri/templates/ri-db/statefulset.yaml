@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "tests-untp-ri.riDb.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ri-db
+spec:
+  serviceName: {{ include "tests-untp-ri.riDb.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tests-untp-ri.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ri-db
+  template:
+    metadata:
+      labels:
+        {{- include "tests-untp-ri.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ri-db
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: postgres
+          image: "{{ .Values.riDb.image.repository }}:{{ .Values.riDb.image.tag }}"
+          imagePullPolicy: {{ .Values.riDb.image.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.riDb.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: ri-postgres-password
+            - name: POSTGRES_DB
+              value: {{ .Values.riDb.auth.database | quote }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", {{ .Values.riDb.auth.username | quote }}, "-d", {{ .Values.riDb.auth.database | quote }}]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", {{ .Values.riDb.auth.username | quote }}, "-d", {{ .Values.riDb.auth.database | quote }}]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          {{- with .Values.riDb.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- if not .Values.riDb.persistence.enabled }}
+      volumes:
+        - name: data
+          emptyDir: {}
+      {{- end }}
+  {{- if .Values.riDb.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.riDb.persistence.storageClass }}
+        storageClassName: {{ .Values.riDb.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.riDb.persistence.size }}
+  {{- end }}

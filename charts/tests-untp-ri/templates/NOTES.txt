@@ -1,0 +1,20 @@
+UNTP Reference Implementation (tests-untp-ri) installed.
+
+{{- if .Values.route.ri.host }}
+
+  RI URL:        https://{{ .Values.route.ri.host }}
+  Health:        https://{{ .Values.route.ri.host }}/api/health
+  API docs:      https://{{ .Values.route.ri.host }}/api-docs
+{{- else }}
+  RI service:    {{ include "tests-untp-ri.ri.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:3003
+{{- end }}
+
+{{- if and .Values.route.keycloak.enabled .Values.route.keycloak.host }}
+
+  Keycloak:      https://{{ .Values.route.keycloak.host }}
+{{- end }}
+
+  Secret:        {{ include "tests-untp-ri.secretName" . }}
+
+Build the RI image from repo root:
+  docker build -f packages/reference-implementation/Dockerfile -t <ri.image.repository>:<ri.image.tag> .

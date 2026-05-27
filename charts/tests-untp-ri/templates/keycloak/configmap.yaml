@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tests-untp-ri.keycloak.fullname" . }}-realms
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+data:
+{{- (.Files.Glob "files/keycloak-realms/*").AsConfig | nindent 2 }}

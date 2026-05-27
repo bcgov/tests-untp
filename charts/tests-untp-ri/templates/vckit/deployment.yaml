@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tests-untp-ri.vckit.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: vckit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tests-untp-ri.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: vckit
+  template:
+    metadata:
+      labels:
+        {{- include "tests-untp-ri.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: vckit
+    spec:
+      containers:
+        - name: vckit
+          image: "{{ .Values.vckit.image.repository }}:{{ .Values.vckit.image.tag }}@{{ .Values.vckit.image.digest }}"
+          imagePullPolicy: {{ .Values.vckit.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3332
+          env:
+            - name: DATABASE_HOST
+              value: {{ include "tests-untp-ri.vckitDb.fullname" . | quote }}
+            - name: DATABASE_TYPE
+              value: postgres
+            - name: DATABASE_USERNAME
+              value: {{ .Values.vckitDb.auth.username | quote }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: vckit-postgres-password
+            - name: DATABASE_NAME
+              value: {{ .Values.vckitDb.auth.database | quote }}
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_ENCRYPTION_KEY
+              value: {{ .Values.vckit.databaseEncryptionKey | quote }}
+            - name: PORT
+              value: "3332"
+            - name: PROTOCOL
+              value: http
+            - name: API_DOMAIN
+              value: {{ printf "%s:3332" (include "tests-untp-ri.vckit.fullname" .) | quote }}
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: system-vc-api-key
+          readinessProbe:
+            httpGet:
+              path: /agent-api-docs
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /agent-api-docs
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          {{- with .Values.vckit.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

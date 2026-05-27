@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tests-untp-ri.storage.fullname" . }}
+  labels:
+    {{- include "tests-untp-ri.labels" . | nindent 4 }}
+    app.kubernetes.io/component: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tests-untp-ri.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: storage
+  template:
+    metadata:
+      labels:
+        {{- include "tests-untp-ri.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: storage
+    spec:
+      containers:
+        - name: storage
+          image: "{{ .Values.storage.image.repository }}:{{ .Values.storage.image.tag }}"
+          imagePullPolicy: {{ .Values.storage.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3334
+          env:
+            - name: PROTOCOL
+              value: http
+            - name: DOMAIN
+              value: {{ include "tests-untp-ri.storage.fullname" . | quote }}
+            - name: PORT
+              value: "3334"
+            - name: AVAILABLE_BUCKETS
+              value: {{ printf "%s,%s" .Values.storage.publicBucket .Values.storage.privateBucket | quote }}
+            - name: DEFAULT_BUCKET
+              value: {{ .Values.storage.publicBucket | quote }}
+            - name: STORAGE_TYPE
+              value: local
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tests-untp-ri.secretName" . }}
+                  key: system-storage-api-key
+            - name: ALLOWED_UPLOAD_TYPES
+              value: image/png,image/jpeg,image/webp,application/pdf,text/html
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/src/uploads
+          {{- with .Values.storage.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: uploads
+          {{- if .Values.storage.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "tests-untp-ri.storage.fullname" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

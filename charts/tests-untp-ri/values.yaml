@@ -1,0 +1,112 @@
+nameOverride: ""
+fullnameOverride: tests-untp-ri
+
+global:
+  imagePullSecrets: []
+
+# OpenShift Route / Ingress for browser-facing URLs
+route:
+  enabled: true
+  annotations:
+    route.openshift.io/termination: edge
+  ri:
+    host: ""
+  keycloak:
+    host: ""
+    enabled: true
+
+secrets:
+  # When true, chart creates {{fullname}}-secrets. Set false and use existingSecret for GitOps-managed secrets.
+  create: true
+  existingSecret: ""
+
+ri:
+  replicaCount: 1
+  image:
+    # Build: docker build -f packages/reference-implementation/Dockerfile -t <repo>:<tag> .
+    repository: ghcr.io/bcgov/tests-untp-reference-implementation
+    tag: dev
+    pullPolicy: IfNotPresent
+  resources: {}
+  tenantMode: open
+  verifyAllowPrivateUrls: true
+  deploymentEnvironment: dev
+
+keycloak:
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.4.2"
+    pullPolicy: IfNotPresent
+  realm: ri-local
+  adminUser: admin
+  resources: {}
+
+riDb:
+  image:
+    repository: postgres
+    tag: 17-alpine
+    pullPolicy: IfNotPresent
+  auth:
+    username: ri-postgres
+    database: ri
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: ""
+  resources: {}
+
+vckitDb:
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  auth:
+    username: postgres
+    database: vckit
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: ""
+  resources: {}
+
+vckit:
+  image:
+    repository: ghcr.io/uncefact/project-vckit
+    tag: "1.2.1"
+    digest: sha256:9c6f305ee7834e311dbcc7d6fec98bdf350d6064bfbc71781b11088020fc0ae0
+    pullPolicy: IfNotPresent
+  databaseEncryptionKey: "29739248cad1bd1a0fc4d9b75cd4d2990de535baf5caadfdf8d8f86664aa830c"
+  resources: {}
+
+storage:
+  image:
+    repository: ghcr.io/uncefact/project-storage-service
+    tag: "4.0.0"
+    pullPolicy: IfNotPresent
+  publicBucket: public-data
+  privateBucket: private-data
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+  resources: {}
+
+idr:
+  image:
+    repository: ghcr.io/pyx-industries/pyx-identity-resolver
+    tag: "3.0.0"
+    pullPolicy: IfNotPresent
+  appName: IDR-1
+  resources: {}
+
+minio:
+  image:
+    repository: quay.io/minio/minio
+    tag: RELEASE.2024-08-17T01-24-54Z-cpuv1
+    pullPolicy: IfNotPresent
+  bucket: idr-bucket-1
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+  resources: {}

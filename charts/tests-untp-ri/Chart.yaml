@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tests-untp-ri
+description: Minimum viable Helm chart for the UNTP Reference Implementation and dependent services.
+type: application
+version: 0.1.0
+appVersion: "0.2.1"
