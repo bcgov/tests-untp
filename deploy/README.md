@@ -5,10 +5,10 @@ Environment-specific Helm values for [`charts/tests-untp-ri`](../charts/tests-un
 ```bash
 helm upgrade --install tests-untp-ri ./charts/tests-untp-ri \
   -f deploy/dev/values.yaml \
-  -n <namespace>
+  -n f890b1-dev
 ```
 
-Use release name **`tests-untp-ri`** (matches `fullnameOverride`).
+Use release name **`tests-untp-ri`** (matches `fullnameOverride`). Deploy into **`f890b1-dev`** — the same namespace as **`untp-publisher-service`**.
 
 ## Layout
 

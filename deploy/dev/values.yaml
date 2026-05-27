@@ -1,5 +1,6 @@
 ## Development overlay (BC Gov OpenShift Gold) — low quota profile.
-##   helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n <namespace>
+## Namespace: f890b1-dev (same as untp-publisher-service).
+##   helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n f890b1-dev
 ##
 ## ~2.5Gi PVC total (5 x 512Mi). Tune up if Keycloak or RI OOM.
 
