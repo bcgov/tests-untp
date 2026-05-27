@@ -45,7 +45,13 @@ docker build -f packages/reference-implementation/Dockerfile --target build \
 ## Prerequisites
 
 - OpenShift Routes: `route.ri.host` and `route.keycloak.host` in `deploy/dev/values.yaml`
-- Namespace **`f890b1-dev`** (shared with `untp-publisher-service`): dev overlay uses **128Mi per PVC** (~640Mi for RI) and minimal CPU/memory — see `deploy/dev/values.yaml`. Ensure namespace quota headroom for publisher + RI combined.
+- Namespace **`f890b1-dev`** (shared with `untp-publisher-service`). Check quotas first:
+
+  ```bash
+  kubectl describe resourcequota -n f890b1-dev
+  ```
+
+  Dev overlay targets remaining **netapp-file-standard** storage (e.g. **512Mi left** → two **256Mi** DB PVCs only; storage + MinIO use **emptyDir**). Memory/cpu **requests** are kept low so RI + publisher stay under **2Gi / 500m** long-running limits.
 - Keycloak realm client `ri-app` secret must match chart Secret key `oidc-client-secret` (default `changeme` on first install)
 
 ## Components (MVP)
