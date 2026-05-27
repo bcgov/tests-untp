@@ -1,7 +1,13 @@
-## Development overlay (BC Gov OpenShift).
-## helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n <namespace>
+## Development overlay (BC Gov OpenShift Gold).
+## From repo root:
+##   helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n <namespace>
+##
+## Public URLs: standard Gold Route (*.apps.gold.devops.gov.bc.ca), edge TLS.
+## Release name must be tests-untp-ri (matches fullnameOverride).
 
 route:
+  annotations:
+    route.openshift.io/termination: edge
   ri:
     host: tests-untp-ri-dev.apps.gold.devops.gov.bc.ca
   keycloak:
@@ -9,8 +15,9 @@ route:
 
 ri:
   image:
-    repository: ghcr.io/bcgov/tests-untp-reference-implementation
-    tag: dev
+    # Published by uncefact/tests-untp on every merge to next (see .github/workflows/docker-ri.yml)
+    repository: ghcr.io/uncefact/tests-untp/reference-implementation
+    tag: next
     pullPolicy: Always
   verifyAllowPrivateUrls: true
   deploymentEnvironment: dev
@@ -18,15 +25,19 @@ ri:
 riDb:
   persistence:
     size: 8Gi
+    storageClass: netapp-file-standard
 
 vckitDb:
   persistence:
     size: 8Gi
+    storageClass: netapp-file-standard
 
 storage:
   persistence:
     size: 5Gi
+    storageClass: netapp-file-standard
 
 minio:
   persistence:
     size: 5Gi
+    storageClass: netapp-file-standard

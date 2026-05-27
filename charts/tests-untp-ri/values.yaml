@@ -23,9 +23,9 @@ secrets:
 ri:
   replicaCount: 1
   image:
-    # Build: docker build -f packages/reference-implementation/Dockerfile -t <repo>:<tag> .
-    repository: ghcr.io/bcgov/tests-untp-reference-implementation
-    tag: dev
+    # Default: UN/CEFACT rolling build from next. Override in deploy/dev or publish bcgov image.
+    repository: ghcr.io/uncefact/tests-untp/reference-implementation
+    tag: next
     pullPolicy: IfNotPresent
   resources: {}
   tenantMode: open
