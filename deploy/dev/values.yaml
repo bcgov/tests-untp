@@ -1,8 +1,8 @@
-## Development overlay (BC Gov OpenShift Gold) — low quota profile.
-## Namespace: f890b1-dev (same as untp-publisher-service).
+## Development overlay (BC Gov OpenShift Gold) — minimal quota (with untp-publisher in f890b1-dev).
 ##   helm upgrade --install tests-untp-ri ./charts/tests-untp-ri -f deploy/dev/values.yaml -n f890b1-dev
 ##
-## ~2.5Gi PVC total (5 x 512Mi). Tune up if Keycloak or RI OOM.
+## Storage: 5 x 128Mi PVC ≈ 640Mi for this release (plus publisher PVCs in the same namespace).
+## Memory: low limits; raise keycloak/ri if pods OOM.
 
 route:
   annotations:
@@ -21,79 +21,79 @@ ri:
   deploymentEnvironment: dev
   resources:
     limits:
-      cpu: 400m
-      memory: 512Mi
+      cpu: 300m
+      memory: 384Mi
     requests:
-      cpu: 50m
-      memory: 256Mi
+      cpu: 25m
+      memory: 128Mi
 
 keycloak:
   resources:
     limits:
-      cpu: 500m
-      memory: 768Mi
-    requests:
-      cpu: 50m
-      memory: 384Mi
-
-riDb:
-  persistence:
-    size: 512Mi
-    storageClass: netapp-file-standard
-  resources:
-    limits:
-      memory: 384Mi
-    requests:
-      cpu: 50m
-      memory: 192Mi
-
-vckitDb:
-  persistence:
-    size: 512Mi
-    storageClass: netapp-file-standard
-  resources:
-    limits:
-      memory: 384Mi
-    requests:
-      cpu: 50m
-      memory: 192Mi
-
-vckit:
-  resources:
-    limits:
       cpu: 400m
       memory: 512Mi
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 256Mi
 
-storage:
+riDb:
   persistence:
-    size: 512Mi
+    size: 128Mi
     storageClass: netapp-file-standard
   resources:
     limits:
-      memory: 384Mi
+      memory: 256Mi
     requests:
-      cpu: 50m
-      memory: 192Mi
+      cpu: 25m
+      memory: 128Mi
 
-idr:
+vckitDb:
+  persistence:
+    size: 128Mi
+    storageClass: netapp-file-standard
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 128Mi
+
+vckit:
   resources:
     limits:
       cpu: 300m
       memory: 384Mi
     requests:
-      cpu: 50m
-      memory: 192Mi
+      cpu: 25m
+      memory: 128Mi
 
-minio:
+storage:
   persistence:
-    size: 512Mi
+    size: 128Mi
     storageClass: netapp-file-standard
   resources:
     limits:
-      memory: 384Mi
+      memory: 256Mi
     requests:
-      cpu: 50m
-      memory: 192Mi
+      cpu: 25m
+      memory: 128Mi
+
+idr:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 128Mi
+
+minio:
+  persistence:
+    size: 128Mi
+    storageClass: netapp-file-standard
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 128Mi
